@@ -1,0 +1,28 @@
+package com.app.logistica.entities;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Entity
+@Table(name = "Customers")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+// @OneToMany → Order
+public class Customer {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String phone;
+    private String address;
+
+    @OneToMany(mappedBy = "customer")
+    private List<Order> orders;
+}
