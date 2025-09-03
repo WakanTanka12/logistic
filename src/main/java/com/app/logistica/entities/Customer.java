@@ -25,4 +25,14 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer")
     private List<Order> orders;
+
+    //Constructor para el CustomerMapper
+    public Customer(Long id, String firstName, String lastName, String email, String phone, String address) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phone = phone;
+        this.address = address;
+    }
 }
