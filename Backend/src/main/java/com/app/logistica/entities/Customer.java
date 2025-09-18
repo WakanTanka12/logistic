@@ -22,17 +22,19 @@ public class Customer {
     private String email;
     private String phone;
     private String address;
-
-    @OneToMany(mappedBy = "customer")
-    private List<Order> orders;
+    private int age;
+    private String gender;
+//    @OneToMany(mappedBy = "customer")
+//    private List<Order> orders;
 
     //Constructor para el CustomerMapper
-    public Customer(Long id, String firstName, String lastName, String email, String phone, String address) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.phone = phone;
-        this.address = address;
-    }
+//    public Customer(Long id, String firstName, String lastName, String email, String phone, String address) {
+//        this.id = id;
+//        this.firstName = firstName;
+//        this.lastName = lastName;
+//        this.email = email;
+//        this.phone = phone;
+//        this.address = address;
+//    }
+//
 }

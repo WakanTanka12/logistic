@@ -11,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/customers")
+@CrossOrigin("*")
 public class CustomerController {
     @Autowired
     private CustomerService customerService;
@@ -33,9 +34,16 @@ public class CustomerController {
         return ResponseEntity.ok(customerDTO);
     }
 
+    @PutMapping("{id}")
+    public ResponseEntity<CustomerDTO> updateCustomer(@RequestBody CustomerDTO customerDTO, @PathVariable Long id) {
+        CustomerDTO savedCustomerDTO = customerService.updateCustomer(id, customerDTO);
+        return ResponseEntity.ok(savedCustomerDTO);
+    }
+
+
     @DeleteMapping("{id}")
     public ResponseEntity<String> deleteCustomer(@PathVariable Long id) {
         customerService.deleteCustomer(id);
-        return ResponseEntity.ok("Employee deleted successfully!");
+        return ResponseEntity.ok("Customer deleted successfully!");
     }
 }

@@ -41,7 +41,8 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setEmail(customerDTO.getEmail());
         customer.setPhone(customerDTO.getPhone());
         customer.setAddress(customerDTO.getAddress());
-
+        customer.setAge(customerDTO.getAge());
+        customer.setGender(customerDTO.getGender());
         Customer  updatedCustomer = customerRepository.save(customer);
         return CustomerMapper.mapCustomerToCustomerDTO(updatedCustomer);
     }

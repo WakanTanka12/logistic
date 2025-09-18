@@ -11,7 +11,9 @@ public class CustomerMapper {
                 customer.getLastName(),
                 customer.getEmail(),
                 customer.getPhone(),
-                customer.getAddress()
+                customer.getAddress(),
+                customer.getAge(),
+                customer.getGender()
         );
     }
     public static Customer mapCustomerDTOToCustomer(CustomerDTO customerDTO) {
@@ -21,7 +23,9 @@ public class CustomerMapper {
                 customerDTO.getLastName(),
                 customerDTO.getEmail(),
                 customerDTO.getPhone(),
-                customerDTO.getAddress()
+                customerDTO.getAddress(),
+                customerDTO.getAge(),
+                customerDTO.getGender()
         );
     }
 }
