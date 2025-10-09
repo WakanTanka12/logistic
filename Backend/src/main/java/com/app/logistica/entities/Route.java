@@ -20,8 +20,8 @@ public class Route {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "route")
-    private List<Delivery> deliveries;
+//    @OneToMany(mappedBy = "route")
+//    private List<Delivery> deliveries;
 
     private String routeName;
     private String origin;

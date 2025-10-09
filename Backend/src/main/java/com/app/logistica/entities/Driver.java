@@ -18,8 +18,8 @@ public class Driver {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "driver")
-    private List<Delivery> deliveries;
+//    @OneToMany(mappedBy = "driver")
+//    private List<Delivery> deliveries;
 
     private String firstName;
     private String lastName;

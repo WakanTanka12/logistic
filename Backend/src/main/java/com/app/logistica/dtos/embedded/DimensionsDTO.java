@@ -12,5 +12,4 @@ public class DimensionsDTO {
     private float length;
     private float width;
     private float height;
-
 }

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -22,8 +23,7 @@ public class Customer {
     private String email;
     private String phone;
     private String address;
-    private int age;
-    private String gender;
+
 //    @OneToMany(mappedBy = "customer")
 //    private List<Order> orders;
 

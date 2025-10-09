@@ -9,8 +9,6 @@ const CustomerComponent = () => {
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [address, setAddress] = useState('');
-    const [age, setAge] = useState('');
-    const [gender, setGender] = useState('');
 
     const navigate = useNavigate();
 
@@ -26,8 +24,6 @@ const CustomerComponent = () => {
                 setEmail(response.data.email);
                 setPhone(response.data.phone);
                 setAddress(response.data.address);
-                setAge(response.data.age);
-                setGender(response.data.gender)
             })
         }
     }, [id])
@@ -38,8 +34,6 @@ const CustomerComponent = () => {
         email: '',
         phone: '',
         address: '',
-        age: '',
-        gender: ''
     });
 
     function saveCustomerOrUpdate(e) {
@@ -48,7 +42,7 @@ const CustomerComponent = () => {
         console.log("Customer ID BEFORE:",id);
 
         if (validateForm()){
-            const customer = {firstName, lastName, email, phone, address, age, gender};
+            const customer = {firstName, lastName, email, phone, address};
 
             console.log("Customer ID AFTER:",id);
 
@@ -105,13 +99,6 @@ const CustomerComponent = () => {
             }
         }
 
-        if (address.trim()) {
-            errorsCopy.address = '';
-        } else {
-            errorsCopy.address = 'Address is required';
-            valid = false;
-        }
-
         if (phone.trim()) {
             errorsCopy.phone = '';
         } else {
@@ -119,22 +106,26 @@ const CustomerComponent = () => {
             valid = false;
         }
 
-        if (age) {
-            errorsCopy.age = '';
+        if (phone.trim()) {
+            const phoneRegex = /^[67][0-9]{7}$/;
+            if (!phoneRegex.test(phone)) {
+                errorsCopy.phone = 'Phone is invalid';
+                valid = false;
+            }
+        }
+
+
+        if (address.trim()) {
+            errorsCopy.address = '';
         } else {
-            errorsCopy.age = 'Age is required';
+            errorsCopy.address = 'Address is required';
             valid = false;
         }
 
-        if (gender.trim()) {
-            errorsCopy.gender = '';
-        } else {
-            errorsCopy.gender = 'Gender is required';
-            valid = false;
-        }
         setErrors(errorsCopy);
         return valid;
     }
+
 
     function pageTitle(){
         if (id){
@@ -193,18 +184,6 @@ const CustomerComponent = () => {
                                 {errors.email && <div className="invalid-feedback">{errors.email}</div>}
                             </div>
                             <div className="form-group mb-2">
-                                <label className="form-label">Address</label>
-                                <input
-                                    type='text'
-                                    name="address"
-                                    value={address}
-                                    placeholder="Enter Address"
-                                    className={`form-control ${errors.address ? 'is-invalid' : ''}`}
-                                    onChange={(e) => setAddress(e.target.value)}
-                                />
-                                {errors.address && <div className="invalid-feedback">{errors.address}</div>}
-                            </div>
-                            <div className="form-group mb-2">
                                 <label className="form-label">Phone</label>
                                 <input
                                     type='text'
@@ -217,28 +196,16 @@ const CustomerComponent = () => {
                                 {errors.phone && <div className="invalid-feedback">{errors.phone}</div>}
                             </div>
                             <div className="form-group mb-2">
-                                <label className="form-label">Age</label>
-                                <input
-                                type='text'
-                                name="age"
-                                value={age}
-                                placeholder="Enter Age"
-                                className={`form-control ${errors.age ? 'is-invalid' : ''}`}
-                                onChange={(e) => setAge(e.target.value)}
-                                />
-                                {errors.age && <div className="invalid-feedback">{errors.age}</div>}
-                            </div>
-                            <div className="form-group mb-2">
-                                <label className="form-label">Gender</label>
+                                <label className="form-label">Address</label>
                                 <input
                                     type='text'
-                                    name="gender"
-                                    value={gender}
-                                    placeholder="Enter Gender"
-                                    className={`form-control ${errors.gender ? 'is-invalid' : ''}`}
-                                    onChange={(e) => setGender(e.target.value)}
+                                    name="address"
+                                    value={address}
+                                    placeholder="Enter Address"
+                                    className={`form-control ${errors.address ? 'is-invalid' : ''}`}
+                                    onChange={(e) => setAddress(e.target.value)}
                                 />
-                                {errors.gender && <div className="invalid-feedback">{errors.gender}</div>}
+                                {errors.address && <div className="invalid-feedback">{errors.address}</div>}
                             </div>
                             <button type="submit" className="btn btn-success"
                                     onClick={saveCustomerOrUpdate}>Submit</button>

@@ -46,12 +46,11 @@ const ListCustomerComponent = () => {
                         <th>First Name</th>
                         <th>Last Name</th>
                         <th>Email</th>
-                        <th>Address</th>
                         <th>Phone</th>
-                        <th>Age</th>
-                        <th>Gender</th>
+                        <th>Address</th>
                         <th>Action</th>
                     </tr>
+
                 </thead>
                 <tbody>
                 {customers.map((customer) =>
@@ -60,10 +59,8 @@ const ListCustomerComponent = () => {
                         <td>{customer.firstName}</td>
                         <td>{customer.lastName}</td>
                         <td>{customer.email}</td>
-                        <td>{customer.address}</td>
                         <td>{customer.phone}</td>
-                        <td>{customer.age}</td>
-                        <td>{customer.gender}</td>
+                        <td>{customer.address}</td>
                         <td>
                             <button className='btn btn-info'
                                     onClick={()=>updateCustomer(customer.id)}>Update</button>

@@ -17,9 +17,9 @@ public class Package {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "order_id")
-    private Order order;
+//    @ManyToOne
+//    @JoinColumn(name = "order_id")
+//    private Order order;
 
     @Embedded
     private Dimensions dimensions;
