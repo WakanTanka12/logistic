@@ -18,4 +18,6 @@ public class RouteDTO {
     private String destination;
     private BigDecimal distance;
     private Duration estimatedDuration;
+
+
 }

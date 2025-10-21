@@ -24,4 +24,13 @@ public class Driver {
     private String firstName;
     private String lastName;
     private Boolean free;
+
+
+    public Driver(Long id, String firstName, String lastName, Boolean free) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.free = free;
+
+    }
 }

@@ -20,18 +20,25 @@ public class Delivery {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "order_id")
-    private Order order;
-
+  @OneToOne(cascade = CascadeType.ALL)
+   @JoinColumn(name = "order_id")
+   private Order order;
+//
     @ManyToOne
     @JoinColumn(name = "driver_id")
-    private Driver driver;
-
-    @ManyToOne
+   private Driver driver;
+//
+   @ManyToOne
     @JoinColumn(name = "route_id")
-    private Route route;
+  private Route route;
 
     private LocalDate deliveryDate;
     private String status;
+
+    public Delivery(Long id, LocalDate deliveryDate, String status) {
+        this.id = id;
+        this.deliveryDate = deliveryDate;
+        this.status = status;
+
+    }
 }
