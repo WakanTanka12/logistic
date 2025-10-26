@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
 public interface DriverRepository extends JpaRepository<Driver, Long> {
-//    List<Driver> findByDeliveryId(Long deliveryId);
+      List<Driver> findByDeliveryId(Long deliveryId);
 
 }

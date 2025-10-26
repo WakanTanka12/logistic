@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Collection;
 
 // @OneToOne → Order
 // @ManyToOne → Driver
@@ -35,6 +36,12 @@ public class Delivery {
     @JsonManagedReference
     private Driver driver;
 
+
+
+
+
+
+
     @ManyToOne
     @JoinColumn(name = "route_id",
             foreignKey = @ForeignKey(name = "fk_dependant_route"))
@@ -50,4 +57,7 @@ public class Delivery {
         this.status = status;
 
     }
+
+
+
 }

@@ -5,14 +5,14 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.5</version>
+        <version>3.5.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.app</groupId>
-    <artifactId>logistica</artifactId>
+    <artifactId>emsx</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>logistica</name>
-    <description>logistica</description>
+    <name>emsx</name>
+    <description>emsx</description>
     <url/>
     <licenses>
         <license/>
@@ -54,7 +54,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -83,7 +82,6 @@
                     </excludes>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 

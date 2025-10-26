@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 // @OneToMany → Delivery
@@ -21,7 +22,19 @@ public class Driver {
 
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
-    private List<Delivery> deliveries;
+    private List<Delivery> deliveries= new ArrayList<>();;
+
+    public void addDelivery(Delivery delivery) {
+        deliveries.add(delivery);
+        delivery.setDriver(this);
+    }
+
+    public void removeDelivery(Delivery delivery) {
+        deliveries.remove(delivery);
+        delivery.setDriver(null);
+    }
+
+
 
     private String firstName;
     private String lastName;
@@ -35,4 +48,6 @@ public class Driver {
         this.free = free;
 
     }
+
+
 }
