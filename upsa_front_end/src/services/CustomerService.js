@@ -8,8 +8,8 @@ export const getAllCustomers =
 
 //Llamar al Back-End al API que elimina un empleado
 export const deleteCustomers =
-    (employeeID) =>
-        axios.delete(RESTAPI_BASE_URL+'/'+employeeID);
+    (customerID) =>
+        axios.delete(RESTAPI_BASE_URL+'/'+customerID);
 
 //Llamar al API del Back-End que nos permita agregar un Empleado
 export const addCustomers =
