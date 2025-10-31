@@ -82,11 +82,11 @@ public class DeliveryServiceImpl implements DeliveryService {
 // 🔹 Update delivery (by driver and delivery ID)
 // ===============================================================
     @Override
-    public DeliveryDTO update(Long driverId, Long deliveryId, DeliveryDTO dto) {
+    public DeliveryDTO update(Long driverId, DeliveryDTO dto) {
         Driver driver = verifyDriver(driverId);
 
-        Delivery delivery = deliveryRepository.findById(deliveryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Delivery no encontrado con id=" + deliveryId));
+        Delivery delivery = deliveryRepository.findById(dto.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Delivery no encontrado con id=" + dto.getId()));
 
         if (!delivery.getDriver().getId().equals(driver.getId())) {
             throw new IllegalArgumentException("La entrega no pertenece a este conductor.");

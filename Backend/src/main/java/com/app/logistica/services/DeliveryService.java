@@ -22,7 +22,7 @@ public interface DeliveryService {
     // ===============================================================
 // 🔹 Update delivery (by driver and delivery ID)
 // ===============================================================
-    DeliveryDTO update(Long driverId, Long deliveryId, DeliveryDTO dto);
+    DeliveryDTO update(Long driverId, DeliveryDTO dto);
 
     // 🔹 Eliminar delivery de un conductor
     void remove(Long deliveryId, Long driverId);

@@ -65,7 +65,7 @@ import java.util.List;
             if (dto.getDriverId() == null) {
                 return ResponseEntity.badRequest().build();
             }
-            DeliveryDTO updated = deliveryService.update(dto.getDriverId(), deliveryId, dto);
+            DeliveryDTO updated = deliveryService.update(dto.getDriverId(), dto);
             return ResponseEntity.ok(updated);
         }
 

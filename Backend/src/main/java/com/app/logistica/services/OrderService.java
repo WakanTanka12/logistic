@@ -8,7 +8,7 @@ public interface OrderService {
     List<OrderDTO> listByCustomer(Long customerId);
     OrderDTO addToCustomer(Long orderId, OrderDTO orderDTO);
     OrderDTO getById(Long orderId);
-    OrderDTO update(Long customerId, Long orderId, OrderDTO orderDTO);
+    OrderDTO update(Long customerId, OrderDTO orderDTO);
     void remove(Long customerId, Long orderId);
     void deleteById(Long orderId);
 }

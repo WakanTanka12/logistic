@@ -64,11 +64,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDTO update(Long customerId, Long orderId, OrderDTO orderDTO) {
+    public OrderDTO update(Long customerId, OrderDTO orderDTO) {
         Customer customer = verifyCustomer(customerId);
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+        Order order = orderRepository.findById(orderDTO.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderDTO.getId()));
 
         if(!order.getCustomer().getId().equals(customer.getId())) {
             throw new IllegalArgumentException("Customer id not match");

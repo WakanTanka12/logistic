@@ -48,7 +48,7 @@ public class OrderController {
         if(orderDTO.getCustomerId() == null){
             return ResponseEntity.badRequest().build();
         }
-        OrderDTO updated = orderService.update(orderDTO.getCustomerId(), orderId, orderDTO);
+        OrderDTO updated = orderService.update(orderDTO.getCustomerId(), orderDTO);
         return ResponseEntity.ok(updated);
     }
 
