@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -19,4 +20,6 @@ public class OrderDTO {
 
     private Long customerId;
 
+    public void setPackages(List<PackageDTO> collect) {
+    }
 }
