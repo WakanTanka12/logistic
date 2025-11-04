@@ -16,9 +16,8 @@ public class DeliveryDTO {
     private LocalDate deliveryDate;
     private String status;
 
+    private Long orderId;
     private Long driverId;
-
-
     private Long routeId;
 
 }

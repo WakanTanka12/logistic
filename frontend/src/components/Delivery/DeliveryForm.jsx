@@ -120,7 +120,14 @@ const DeliveryForm = () => {
                 {/* Order (1:1) */}
                 <div className="mb-3">
                     <label className="form-label">Order</label>
-                    <select className="form-select" name="orderId" value={delivery.orderId || ""} onChange={handleChange} required>
+                    <select
+                        className="form-select"
+                        name="orderId"
+                        value={delivery.orderId || ""}
+                        onChange={handleChange}
+                        required
+                        disabled={id}
+                    >
                         <option value="">-- Select Order --</option>
                         {orders.map((o) => (
                             <option key={o.id} value={o.id}>

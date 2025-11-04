@@ -1,8 +1,6 @@
 package com.app.logistica.services;
 
 import com.app.logistica.dtos.DeliveryDTO;
-import com.app.logistica.dtos.DriverDTO;
-import com.app.logistica.entities.Delivery;
 
 import java.util.List;
 
@@ -22,7 +20,7 @@ public interface DeliveryService {
     // ===============================================================
 // 🔹 Update delivery (by driver and delivery ID)
 // ===============================================================
-    DeliveryDTO update(Long driverId, DeliveryDTO dto);
+    DeliveryDTO update(Long deliveryId, DeliveryDTO dto);
 
     // 🔹 Eliminar delivery de un conductor
     void remove(Long deliveryId, Long driverId);

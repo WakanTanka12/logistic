@@ -92,7 +92,7 @@ const OrderForm = () => {
             <form onSubmit={handleSubmit}>
                 {/* Order Date */}
                 <div className="mb-3">
-                    <label className="form-label">Order Date</label>
+                    <label className="form-label" >Order Date</label>
                     <input
                         type="date"
                         className="form-control"

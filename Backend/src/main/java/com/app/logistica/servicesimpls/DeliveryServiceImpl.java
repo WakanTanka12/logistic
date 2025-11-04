@@ -3,10 +3,14 @@ package com.app.logistica.servicesimpls;
 import com.app.logistica.dtos.DeliveryDTO;
 import com.app.logistica.entities.Delivery;
 import com.app.logistica.entities.Driver;
+import com.app.logistica.entities.Order;
+import com.app.logistica.entities.Route;
 import com.app.logistica.exceptions.ResourceNotFoundException;
 import com.app.logistica.mapperdtos.DeliveryMapper;
 import com.app.logistica.repositories.DeliveryRepository;
 import com.app.logistica.repositories.DriverRepository;
+import com.app.logistica.repositories.OrderRepository;
+import com.app.logistica.repositories.RouteRepository;
 import com.app.logistica.services.DeliveryService;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +28,8 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     private final DeliveryRepository deliveryRepository;
     private final DriverRepository driverRepository;
+    private final OrderRepository orderRepository;
+    private final RouteRepository routeRepository;
 
 
     @Override
@@ -61,8 +67,20 @@ public class DeliveryServiceImpl implements DeliveryService {
     public DeliveryDTO addToDriver(Long driverId, DeliveryDTO dto) {
         Driver driver = verifyDriver(driverId);
 
+        Order order = orderRepository.findById(dto.getOrderId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + dto.getOrderId()));
+
+        Route route = null;
+        if (dto.getRouteId() != null) {
+            route = routeRepository.findById(dto.getRouteId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Route not found with id: " + dto.getRouteId()));
+        }
+
         Delivery delivery = DeliveryMapper.toEntity(dto);
+
         delivery.setDriver(driver);
+        delivery.setOrder(order);
+        delivery.setRoute(route);
 
         Delivery saved = deliveryRepository.save(delivery);
         return DeliveryMapper.toDTO(saved);
@@ -82,19 +100,28 @@ public class DeliveryServiceImpl implements DeliveryService {
 // 🔹 Update delivery (by driver and delivery ID)
 // ===============================================================
     @Override
-    public DeliveryDTO update(Long driverId, DeliveryDTO dto) {
-        Driver driver = verifyDriver(driverId);
-
-        Delivery delivery = deliveryRepository.findById(dto.getId())
+    public DeliveryDTO update(Long deliveryId, DeliveryDTO dto) {
+        Delivery delivery = deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Delivery no encontrado con id=" + dto.getId()));
 
-        if (!delivery.getDriver().getId().equals(driver.getId())) {
-            throw new IllegalArgumentException("La entrega no pertenece a este conductor.");
-        }
-
-        // Solo atributos de Delivery: deliveryDate y status
         delivery.setDeliveryDate(dto.getDeliveryDate());
         delivery.setStatus(dto.getStatus());
+
+        //Actualizar Driver (si cambió)
+        if(dto.getDriverId() != null && !dto.getDriverId().equals(delivery.getDriver().getId())) {
+            Driver driver = verifyDriver(dto.getDriverId());
+            delivery.setDriver(driver);
+        }
+
+        if (dto.getRouteId() != null) {
+            if (delivery.getRoute() == null || !dto.getRouteId().equals(delivery.getRoute().getId())) {
+                Route route = routeRepository.findById(dto.getRouteId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Route not found with id: " + dto.getRouteId()));
+                delivery.setRoute(route);
+            }
+        } else {
+            delivery.setRoute(null);
+        }
 
         Delivery updated = deliveryRepository.save(delivery);
         return DeliveryMapper.toDTO(updated);

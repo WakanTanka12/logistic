@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import {
     getPackageById,
-    createPackage,
     updatePackage,
     createPackageForOrder,
 } from "../../services/PackageService";
@@ -98,7 +97,7 @@ const PackageForm = () => {
                     if (!payload.orderId) {
                         return Swal.fire("Validation", "Please select an Order", "warning");
                     }
-                    await createPackage(payload);
+                    await createPackageForOrder(payload.orderId, payload);
                     Swal.fire("Created", "Package created successfully", "success");
                     navigate("/packages");
                 }

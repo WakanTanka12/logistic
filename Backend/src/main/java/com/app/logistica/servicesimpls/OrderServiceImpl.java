@@ -79,21 +79,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDTO update(Long customerId, OrderDTO orderDTO) {
-        Customer customer = verifyCustomer(customerId);
+    public OrderDTO update(Long orderId, OrderDTO orderDTO) {
 
-        Order order = orderRepository.findById(orderDTO.getId())
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderDTO.getId()));
-
-        if(!order.getCustomer().getId().equals(customer.getId())) {
-            throw new IllegalArgumentException("Customer id not match");
-        }
 
         order.setOrderDate(orderDTO.getOrderDate());
         order.setPrice(orderDTO.getPrice());
         order.setDetails(orderDTO.getDetails());
-        order.setCustomer(customer);
-        return  OrderMapper.mapOrderToOrderDTO(orderRepository.save(order));
+
+        if (orderDTO.getCustomerId() != null &&
+                (order.getCustomer() == null || !orderDTO.getCustomerId().equals(order.getCustomer().getId()))) {
+            Customer c = customerRepository.findById(orderDTO.getCustomerId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + orderDTO.getCustomerId()));
+            order.setCustomer(c);
+        }
+        Order updatedOrder = orderRepository.save(order);
+        return  OrderMapper.mapOrderToOrderDTO(orderRepository.save(updatedOrder));
     }
 
     @Override

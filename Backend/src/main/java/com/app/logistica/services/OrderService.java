@@ -6,11 +6,9 @@ import java.util.List;
 public interface OrderService {
     List<OrderDTO> listAll();
     List<OrderDTO> listByCustomer(Long customerId);
-
     OrderDTO createOrder(Long customerId, OrderDTO orderDTO);
-
     OrderDTO getById(Long orderId);
-    OrderDTO update(Long customerId, OrderDTO orderDTO);
+    OrderDTO update(Long orderId, OrderDTO orderDTO);
     void remove(Long customerId, Long orderId);
     void deleteById(Long orderId);
 }

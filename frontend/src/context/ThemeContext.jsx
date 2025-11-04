@@ -7,14 +7,14 @@ export const ThemeProvider = ({ children }) => {
 
     // Detectar preferencia del sistema
     useEffect(() => {
-        const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
-        setIsDarkMode(darkQuery.matches);
+        const root = document.documentElement;
 
-        const handleChange = (e) => setIsDarkMode(e.matches);
-        darkQuery.addEventListener("change", handleChange);
-
-        return () => darkQuery.removeEventListener("change", handleChange);
-    }, []);
+        if(isDarkMode) {
+            root.setAttribute("data-bs-tbeme", "dark");
+        } else {
+            root.setAttribute("data-bs-tbeme", "light");
+        }
+    }, [isDarkMode]);
 
     // Aplicar clase global al body
     useEffect(() => {

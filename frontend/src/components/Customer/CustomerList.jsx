@@ -90,7 +90,7 @@ const EmployeeList = () => {
                             </td>
                             <td>
                                 <Link
-                                    to={`/employees/edit/${e.id}`}
+                                    to={`/customers/edit/${e.id}`}
                                     className="btn btn-warning btn-sm me-2"
                                 >
                                     Edit

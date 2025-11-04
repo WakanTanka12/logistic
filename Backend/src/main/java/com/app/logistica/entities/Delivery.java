@@ -25,7 +25,7 @@ public class Delivery {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "order_id",
             nullable = false,
             foreignKey = @ForeignKey(name = "fk_dependant_order"))

@@ -28,6 +28,9 @@ import java.util.stream.Collectors;
            if (d.getRoute() != null) {
                dto.setRouteId(d.getRoute().getId());
            }
+           if (d.getOrder() != null) {
+               dto.setOrderId(d.getOrder().getId());
+           }
            return dto;
        }
 

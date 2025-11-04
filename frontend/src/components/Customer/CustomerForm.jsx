@@ -128,10 +128,10 @@ const CustomerForm = () => {
 
 
     function pageTitle(){
-        if (id){
-            return <h2 className='text-center'>Update Employee</h2>
-        } else{
-            return <h2 className='text-center'>Add Employee</h2>
+        if (id) {
+            return <h2 className='text-center'>Update Customer</h2>
+        } else {
+            return <h2 className='text-center'>Add Customer</h2>
         }
     }
 
