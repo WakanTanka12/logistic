@@ -1,13 +1,13 @@
 package com.app.logistica.mapperdtos;
 
-import com.app.logistica.dtos.PackageDTO;
+import com.app.logistica.dtos.Package.PackageRequest;
 import com.app.logistica.dtos.embedded.DimensionsDTO;
 import com.app.logistica.entities.Package;
 import com.app.logistica.entities.embedded.Dimensions;
 
-public class PackageMapper {
+public interface PackageMapper {
 
-    public static PackageDTO toDTO(Package p) {
+    public static PackageRequest toDTO(Package p) {
         if (p == null) return null;
 
         Dimensions d = p.getDimensions();
@@ -15,7 +15,7 @@ public class PackageMapper {
                 d.getLength(), d.getWidth(), d.getHeight()
         );
 
-        PackageDTO dto = new PackageDTO();
+        PackageRequest dto = new PackageRequest();
         dto.setId(p.getId());
         dto.setDimensions(ddto);
         dto.setWeight(p.getWeight());
@@ -23,7 +23,7 @@ public class PackageMapper {
         return dto;
     }
 
-    public static Package toEntity(PackageDTO dto) {
+    public static Package toEntity(PackageRequest dto) {
         if (dto == null) return null;
 
         DimensionsDTO ddto = dto.getDimensions();

@@ -19,6 +19,7 @@ import java.util.List;
 // @ManyToOne → Customer
 // @OneToOne → Delivery
 // @OneToMany → Package
+
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

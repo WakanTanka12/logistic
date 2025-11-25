@@ -1,7 +1,7 @@
 package com.app.logistica.controllers;
 
 
-import com.app.logistica.dtos.RouteDTO;
+import com.app.logistica.dtos.route.RouteRequest;
 import com.app.logistica.exceptions.ResourceNotFoundException;
 import com.app.logistica.services.RouteService;
 import lombok.RequiredArgsConstructor;
@@ -21,29 +21,29 @@ public class RouteController {
 
     // 🔹 Crear nueva ruta
     @PostMapping
-    public ResponseEntity<RouteDTO> createRoute(@RequestBody RouteDTO dto) {
-        RouteDTO created = routeService.createRoute(dto);
+    public ResponseEntity<RouteRequest> createRoute(@RequestBody RouteRequest dto) {
+        RouteRequest created = routeService.createRoute(dto);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     // 🔹 Obtener todas las rutas
     @GetMapping
-    public ResponseEntity<List<RouteDTO>> getAllRoutes() {
-        List<RouteDTO> routes = routeService.getAllRoutes();
+    public ResponseEntity<List<RouteRequest>> getAllRoutes() {
+        List<RouteRequest> routes = routeService.getAllRoutes();
         return ResponseEntity.ok(routes);
     }
 
     // 🔹 Obtener ruta por ID
     @GetMapping("/{id}")
-    public ResponseEntity<RouteDTO> getRoute(@PathVariable Long id) {
-        RouteDTO route = routeService.getRoute(id);
+    public ResponseEntity<RouteRequest> getRoute(@PathVariable Long id) {
+        RouteRequest route = routeService.getRoute(id);
         return ResponseEntity.ok(route);
     }
 
     // 🔹 Actualizar ruta existente
     @PutMapping("/{id}")
-    public ResponseEntity<RouteDTO> updateRoute(@PathVariable Long id, @RequestBody RouteDTO dto) {
-        RouteDTO updated = routeService.updateRoute(id, dto);
+    public ResponseEntity<RouteRequest> updateRoute(@PathVariable Long id, @RequestBody RouteRequest dto) {
+        RouteRequest updated = routeService.updateRoute(id, dto);
         return ResponseEntity.ok(updated);
     }
 

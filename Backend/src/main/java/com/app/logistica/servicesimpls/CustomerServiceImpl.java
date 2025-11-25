@@ -1,6 +1,6 @@
 package com.app.logistica.servicesimpls;
 
-import com.app.logistica.dtos.CustomerDTO;
+import com.app.logistica.dtos.customer.CustomerRequest;
 import com.app.logistica.entities.Customer;
 import com.app.logistica.exceptions.ResourceNotFoundException;
 import com.app.logistica.mapperdtos.CustomerMapper;
@@ -8,9 +8,7 @@ import com.app.logistica.repositories.CustomerRepository;
 import com.app.logistica.services.CustomerService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.ResourceAccessException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,26 +21,26 @@ public class CustomerServiceImpl implements CustomerService {
     private CustomerRepository customerRepository;
 
     @Override
-    public CustomerDTO createCustomer(CustomerDTO customerDTO) {
-        Customer customer = CustomerMapper.mapCustomerDTOToCustomer(customerDTO);
+    public CustomerRequest createCustomer(CustomerRequest customerRequest) {
+        Customer customer = CustomerMapper.mapCustomerDTOToCustomer(customerRequest);
 
         Customer savedCustomer = customerRepository.save(customer);
-        return CustomerMapper.mapCustomerToCustomerDTO(savedCustomer);
+        return CustomerMapper.toResponse(savedCustomer);
     }
 
     @Override
-    public CustomerDTO updateCustomer(Long customerId, CustomerDTO customerDTO) {
+    public CustomerRequest updateCustomer(Long customerId, CustomerRequest customerRequest) {
         Customer customer = customerRepository.findById(customerId).orElseThrow(
                 () -> new ResourceNotFoundException("Customer not found with id " + customerId)
         );
 
-        customer.setFirstName(customerDTO.getFirstName());
-        customer.setLastName(customerDTO.getLastName());
-        customer.setEmail(customerDTO.getEmail());
-        customer.setPhone(customerDTO.getPhone());
-        customer.setAddress(customerDTO.getAddress());
+        customer.setFirstName(customerRequest.getFirstName());
+        customer.setLastName(customerRequest.getLastName());
+        customer.setEmail(customerRequest.getEmail());
+        customer.setPhone(customerRequest.getPhone());
+        customer.setAddress(customerRequest.getAddress());
         Customer updatedCustomer = customerRepository.save(customer);
-        return CustomerMapper.mapCustomerToCustomerDTO(updatedCustomer);
+        return CustomerMapper.toResponse(updatedCustomer);
     }
 
     @Override
@@ -56,17 +54,17 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public CustomerDTO getCustomer(Long customerId) {
+    public CustomerRequest getCustomer(Long customerId) {
         Customer customer = customerRepository.findById(customerId).orElseThrow(
                 () -> new ResourceNotFoundException("Customer not found with id " + customerId)
         );
-        return CustomerMapper.mapCustomerToCustomerDTO(customer);
+        return CustomerMapper.toResponse(customer);
     }
 
     @Override
-    public List<CustomerDTO> getAllCustomers() {
+    public List<CustomerRequest> getAllCustomers() {
         List<Customer> customers = customerRepository.findAll();
         return customers.stream().map(
-                (CustomerMapper::mapCustomerToCustomerDTO)).collect(Collectors.toList());
+                (CustomerMapper::toResponse)).collect(Collectors.toList());
     }
 }

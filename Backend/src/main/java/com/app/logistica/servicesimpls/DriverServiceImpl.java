@@ -1,6 +1,6 @@
 package com.app.logistica.servicesimpls;
 
-import com.app.logistica.dtos.DriverDTO;
+import com.app.logistica.dtos.driver.DriverRequest;
 import com.app.logistica.entities.Driver;
 import com.app.logistica.exceptions.ResourceNotFoundException;
 import com.app.logistica.mapperdtos.DeliveryMapper;
@@ -21,8 +21,8 @@ public class DriverServiceImpl implements DriverService {
     private final DriverRepository driverRepository;
 
     @Override
-    public DriverDTO createDriver(DriverDTO driverDTO) {
-        Driver driver = DriverMapper.mapDriverDTOToDriver(driverDTO);
+    public DriverRequest createDriver(DriverRequest driverRequest) {
+        Driver driver = DriverMapper.mapDriverDTOToDriver(driverRequest);
         Driver savedDriver = driverRepository.save(driver);
 
 
@@ -31,20 +31,20 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public DriverDTO updateDriver(Long driverID, DriverDTO driverDTO) {
+    public DriverRequest updateDriver(Long driverID, DriverRequest driverRequest) {
         Driver driver = driverRepository.findById(driverID)
                 .orElseThrow(() -> new ResourceNotFoundException("Driver not found with id " + driverID));
 
-        driver.setFirstName(driverDTO.getFirstName());
-        driver.setLastName(driverDTO.getLastName());
+        driver.setFirstName(driverRequest.getFirstName());
+        driver.setLastName(driverRequest.getLastName());
 
 // --- Limpia las entregas anteriores ---
         driver.getDeliveries().forEach(d -> d.setDriver(null));
         driver.getDeliveries().clear();
 
 // --- Asigna las nuevas entregas ---
-        if (driverDTO.getDeliveries() != null) {
-            driverDTO.getDeliveries().forEach(deliveryDto ->
+        if (driverRequest.getDeliveries() != null) {
+            driverRequest.getDeliveries().forEach(deliveryDto ->
                     driver.addDelivery(DeliveryMapper.toEntity(deliveryDto))
             );
         }
@@ -65,7 +65,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public DriverDTO getDriver(Long driverID) {
+    public DriverRequest getDriver(Long driverID) {
         Driver driver = driverRepository.findById(driverID)
                 .orElseThrow(() -> new ResourceNotFoundException("Driver not found with id " + driverID));
 
@@ -74,7 +74,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public List<DriverDTO> getDrivers() {
+    public List<DriverRequest> getDrivers() {
         List<Driver> drivers = driverRepository.findAll();
 
 // Ya no es necesario driver.getDeliveries().size(), Hibernate carga todo por @EntityGraph

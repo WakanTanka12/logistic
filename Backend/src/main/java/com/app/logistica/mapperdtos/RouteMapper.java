@@ -1,18 +1,16 @@
 package com.app.logistica.mapperdtos;
 
-import com.app.logistica.dtos.DeliveryDTO;
-import com.app.logistica.dtos.RouteDTO;
+import com.app.logistica.dtos.route.RouteRequest;
 import com.app.logistica.entities.Route;
-import com.app.logistica.mapperdtos.DeliveryMapper;
 
 import java.util.stream.Collectors;
 
-public class RouteMapper {
+public interface RouteMapper {
 
-    public static RouteDTO toDTO(Route route) {
+    public static RouteRequest toDTO(Route route) {
         if (route == null) return null;
 
-        RouteDTO dto = new RouteDTO();
+        RouteRequest dto = new RouteRequest();
         dto.setId(route.getId());
         dto.setRouteName(route.getRouteName());
         dto.setOrigin(route.getOrigin());
@@ -30,7 +28,7 @@ public class RouteMapper {
         return dto;
     }
 
-    public static Route toEntity(RouteDTO dto) {
+    public static Route toEntity(RouteRequest dto) {
         if (dto == null) return null;
 
         Route route = new Route();

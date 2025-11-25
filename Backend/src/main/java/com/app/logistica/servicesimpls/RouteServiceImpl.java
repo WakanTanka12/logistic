@@ -1,6 +1,6 @@
 package com.app.logistica.servicesimpls;
 
-import com.app.logistica.dtos.RouteDTO;
+import com.app.logistica.dtos.route.RouteRequest;
 import com.app.logistica.entities.Route;
 import com.app.logistica.exceptions.ResourceNotFoundException;
 
@@ -10,7 +10,6 @@ import com.app.logistica.services.RouteService;
 
 import com.app.logistica.repositories.RouteRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,14 +25,14 @@ public class RouteServiceImpl implements RouteService {
         private final RouteRepository routeRepository;
 
     @Override
-        public RouteDTO createRoute(RouteDTO dto) {
+        public RouteRequest createRoute(RouteRequest dto) {
             Route route = RouteMapper.toEntity(dto);
             Route saved = routeRepository.save(route);
             return RouteMapper.toDTO(saved);
         }
 
         @Override
-        public RouteDTO updateRoute(Long id, RouteDTO dto) {
+        public RouteRequest updateRoute(Long id, RouteRequest dto) {
             Route route = routeRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Route not found with id " + id));
 
@@ -49,7 +48,7 @@ public class RouteServiceImpl implements RouteService {
 
         @Override
         @Transactional(readOnly = true)
-        public RouteDTO getRoute(Long id) {
+        public RouteRequest getRoute(Long id) {
             Route route = routeRepository.findByIdWithDeliveries(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Route not found with id " + id));
             return RouteMapper.toDTO(route);
@@ -57,7 +56,7 @@ public class RouteServiceImpl implements RouteService {
 
         @Override
         @Transactional(readOnly = true)
-        public List<RouteDTO> getAllRoutes() {
+        public List<RouteRequest> getAllRoutes() {
             return routeRepository.findAllWithDeliveries()
                     .stream()
                     .map(RouteMapper::toDTO)

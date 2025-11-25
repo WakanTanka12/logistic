@@ -1,6 +1,6 @@
 package com.app.logistica.servicesimpls;
 
-import com.app.logistica.dtos.OrderDTO;
+import com.app.logistica.dtos.order.OrderRequest;
 import com.app.logistica.entities.Customer;
 import com.app.logistica.entities.Order;
 import com.app.logistica.exceptions.ResourceNotFoundException;
@@ -24,7 +24,7 @@ public class OrderServiceImpl implements OrderService {
     private final CustomerRepository customerRepository;
 
     @Override
-    public List<OrderDTO> listAll() {
+    public List<OrderRequest> listAll() {
         return orderRepository.findAllWithCustomer()
                 .stream()
                 .map(OrderMapper::mapOrderToOrderDTO)
@@ -32,7 +32,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderDTO> listByCustomer(Long customerId) {
+    public List<OrderRequest> listByCustomer(Long customerId) {
         if (customerId == null) {
             return listAll();
         }
@@ -56,12 +56,12 @@ public class OrderServiceImpl implements OrderService {
     }
     */
     @Override
-    public OrderDTO createOrder(Long customerId, OrderDTO orderDTO) {
+    public OrderRequest createOrder(Long customerId, OrderRequest orderRequest) {
         // 1️⃣ Verificar que el cliente exista
         Customer customer = verifyCustomer(customerId);
 
         // 2️⃣ Mapear el DTO a la entidad
-        Order order = OrderMapper.mapOrderDTOtoOrder(orderDTO);
+        Order order = OrderMapper.mapOrderDTOtoOrder(orderRequest);
 
         // 3️⃣ Asociar el cliente a la orden
         order.setCustomer(customer);
@@ -72,26 +72,26 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDTO getById(Long orderId) {
+    public OrderRequest getById(Long orderId) {
         Order order = orderRepository.findById(orderId).
                 orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
         return OrderMapper.mapOrderToOrderDTO(order);
     }
 
     @Override
-    public OrderDTO update(Long orderId, OrderDTO orderDTO) {
+    public OrderRequest update(Long orderId, OrderRequest orderRequest) {
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderDTO.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderRequest.getId()));
 
-        order.setOrderDate(orderDTO.getOrderDate());
-        order.setPrice(orderDTO.getPrice());
-        order.setDetails(orderDTO.getDetails());
+        order.setOrderDate(orderRequest.getOrderDate());
+        order.setPrice(orderRequest.getPrice());
+        order.setDetails(orderRequest.getDetails());
 
-        if (orderDTO.getCustomerId() != null &&
-                (order.getCustomer() == null || !orderDTO.getCustomerId().equals(order.getCustomer().getId()))) {
-            Customer c = customerRepository.findById(orderDTO.getCustomerId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + orderDTO.getCustomerId()));
+        if (orderRequest.getCustomerId() != null &&
+                (order.getCustomer() == null || !orderRequest.getCustomerId().equals(order.getCustomer().getId()))) {
+            Customer c = customerRepository.findById(orderRequest.getCustomerId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + orderRequest.getCustomerId()));
             order.setCustomer(c);
         }
         Order updatedOrder = orderRepository.save(order);

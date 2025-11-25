@@ -1,21 +1,13 @@
 package com.app.logistica.mapperdtos;
 
-import com.app.logistica.dtos.DeliveryDTO;
-import com.app.logistica.dtos.DriverDTO;
+import com.app.logistica.dtos.delivery.DeliveryRequest;
 import com.app.logistica.entities.Delivery;
-import com.app.logistica.entities.Driver;
 
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-   public class DeliveryMapper {
-       public static DeliveryDTO toDTO(Delivery d) {
+public interface DeliveryMapper {
+       public static DeliveryRequest toDTO(Delivery d) {
            if (d == null) return null;
 
-           DeliveryDTO dto = new DeliveryDTO();
+           DeliveryRequest dto = new DeliveryRequest();
            dto.setId(d.getId());
            dto.setDeliveryDate(d.getDeliveryDate());
            dto.setStatus(d.getStatus());
@@ -23,7 +15,6 @@ import java.util.stream.Collectors;
            // 🔹 Incluye datos del conductor (nombre y ID)
            if (d.getDriver() != null) {
                dto.setDriverId(d.getDriver().getId());
-
            }
            if (d.getRoute() != null) {
                dto.setRouteId(d.getRoute().getId());
@@ -34,7 +25,7 @@ import java.util.stream.Collectors;
            return dto;
        }
 
-       public static Delivery toEntity(DeliveryDTO dto) {
+       public static Delivery toEntity(DeliveryRequest dto) {
            if (dto == null) return null;
 
            Delivery d = new Delivery();

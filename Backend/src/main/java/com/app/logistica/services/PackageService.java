@@ -1,15 +1,15 @@
 package com.app.logistica.services;
 
-import com.app.logistica.dtos.PackageDTO;
+import com.app.logistica.dtos.Package.PackageRequest;
 
 import java.util.List;
 
 public interface PackageService {
-    PackageDTO createForOrder(Long orderId, PackageDTO dto);
-    PackageDTO updatePackage(Long packageId, PackageDTO dto);
+    PackageRequest createForOrder(Long orderId, PackageRequest dto);
+    PackageRequest updatePackage(Long packageId, PackageRequest dto);
     void deletePackage(Long packageId);
 
-    PackageDTO getPackage(Long packageId);
-    List<PackageDTO> getPackages();
-    List<PackageDTO> getByOrder(Long orderId);
+    PackageRequest getPackage(Long packageId);
+    List<PackageRequest> getPackages();
+    List<PackageRequest> getByOrder(Long orderId);
 }

@@ -1,7 +1,7 @@
 package com.app.logistica.controllers;
 
 
-import com.app.logistica.dtos.DeliveryDTO;
+import com.app.logistica.dtos.delivery.DeliveryRequest;
 import com.app.logistica.services.DeliveryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,8 +22,8 @@ import java.util.List;
         // 🔹 LISTAR TODAS LAS ENTREGAS (para /api/deliveries)
         // ============================================================
         @GetMapping("/deliveries")
-        public ResponseEntity<List<DeliveryDTO>> listAll() {
-            List<DeliveryDTO> list = deliveryService.listByDriver(null);
+        public ResponseEntity<List<DeliveryRequest>> listAll() {
+            List<DeliveryRequest> list = deliveryService.listByDriver(null);
             return ResponseEntity.ok(list);
         }
 
@@ -31,8 +31,8 @@ import java.util.List;
         // 🔹 LISTAR ENTREGAS DE UN CONDUCTOR (para /api/drivers/{driverId}/deliveries)
         // ============================================================
         @GetMapping("/drivers/{driverId}/deliveries")
-        public ResponseEntity<List<DeliveryDTO>> listByDriver(@PathVariable Long driverId) {
-            List<DeliveryDTO> list = deliveryService.listByDriver(driverId);
+        public ResponseEntity<List<DeliveryRequest>> listByDriver(@PathVariable Long driverId) {
+            List<DeliveryRequest> list = deliveryService.listByDriver(driverId);
             return ResponseEntity.ok(list);
         }
 
@@ -40,8 +40,8 @@ import java.util.List;
         // 🔹 OBTENER UNA ENTREGA POR ID
         // ============================================================
         @GetMapping("/deliveries/{deliveryId}")
-        public ResponseEntity<DeliveryDTO> getById(@PathVariable Long deliveryId) {
-            DeliveryDTO dto = deliveryService.getById(deliveryId);
+        public ResponseEntity<DeliveryRequest> getById(@PathVariable Long deliveryId) {
+            DeliveryRequest dto = deliveryService.getById(deliveryId);
             return ResponseEntity.ok(dto);
         }
 
@@ -49,11 +49,11 @@ import java.util.List;
         // 🔹 AGREGAR UNA NUEVA ENTREGA
         // ============================================================
         @PostMapping("/deliveries")
-        public ResponseEntity<DeliveryDTO> create(@RequestBody DeliveryDTO dto) {
+        public ResponseEntity<DeliveryRequest> create(@RequestBody DeliveryRequest dto) {
             if (dto.getDriverId() == null) {
                 return ResponseEntity.badRequest().build();
             }
-            DeliveryDTO created = deliveryService.addToDriver(dto.getDriverId(), dto);
+            DeliveryRequest created = deliveryService.addToDriver(dto.getDriverId(), dto);
             return new ResponseEntity<>(created, HttpStatus.CREATED);
         }
 
@@ -61,11 +61,11 @@ import java.util.List;
         // 🔹 ACTUALIZAR UNA ENTREGA EXISTENTE
         // ============================================================
         @PutMapping("/deliveries/{deliveryId}")
-        public ResponseEntity<DeliveryDTO> update(@PathVariable Long deliveryId, @RequestBody DeliveryDTO dto) {
+        public ResponseEntity<DeliveryRequest> update(@PathVariable Long deliveryId, @RequestBody DeliveryRequest dto) {
             if (dto.getDriverId() == null) {
                 return ResponseEntity.badRequest().build();
             }
-            DeliveryDTO updated = deliveryService.update(deliveryId, dto);
+            DeliveryRequest updated = deliveryService.update(deliveryId, dto);
             return ResponseEntity.ok(updated);
         }
 

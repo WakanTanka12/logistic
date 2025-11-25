@@ -1,6 +1,6 @@
 package com.app.logistica.servicesimpls;
 
-import com.app.logistica.dtos.PackageDTO;
+import com.app.logistica.dtos.Package.PackageRequest;
 import com.app.logistica.entities.Order;
 import com.app.logistica.entities.Package;
 import com.app.logistica.exceptions.ResourceNotFoundException;
@@ -24,7 +24,7 @@ public class PackageServiceImpl implements PackageService {
     private final OrderRepository orderRepository;
 
     @Override
-    public PackageDTO createForOrder(Long orderId, PackageDTO dto) {
+    public PackageRequest createForOrder(Long orderId, PackageRequest dto) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id " + orderId));
 
@@ -36,7 +36,7 @@ public class PackageServiceImpl implements PackageService {
     }
 
     @Override
-    public PackageDTO updatePackage(Long packageId, PackageDTO dto) {
+    public PackageRequest updatePackage(Long packageId, PackageRequest dto) {
         Package p = packageRepository.findById(packageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Package not found with id " + packageId));
 
@@ -68,21 +68,21 @@ public class PackageServiceImpl implements PackageService {
     }
 
     @Override
-    public PackageDTO getPackage(Long packageId) {
+    public PackageRequest getPackage(Long packageId) {
         Package p = packageRepository.findById(packageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Package not found with id " + packageId));
         return PackageMapper.toDTO(p);
     }
 
     @Override
-    public List<PackageDTO> getPackages() {
+    public List<PackageRequest> getPackages() {
         return packageRepository.findAll().stream()
                 .map(PackageMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<PackageDTO> getByOrder(Long orderId) {
+    public List<PackageRequest> getByOrder(Long orderId) {
         return packageRepository.findByOrder_Id(orderId).stream()
                 .map(PackageMapper::toDTO)
                 .collect(Collectors.toList());

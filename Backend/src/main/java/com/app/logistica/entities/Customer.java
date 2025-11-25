@@ -16,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 // @OneToMany → Order
+// @OneToOne -> CustomerType
 public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,14 +31,6 @@ public class Customer {
     @JsonBackReference
     private List<Order> orders = new ArrayList<>();
 
-    public void addOrder(Order order) {
-        orders.add(order);
-        order.setCustomer(this);
-    }
-    public void removeOrder(Order order) {
-        orders.remove(order);
-        order.setCustomer(null);
-    }
     //Constructor para el CustomerMapper
     public Customer(Long id, String firstName, String lastName, String email, String phone, String address) {
         this.id = id;

@@ -1,6 +1,6 @@
 package com.app.logistica.controllers;
 
-import com.app.logistica.dtos.PackageDTO;
+import com.app.logistica.dtos.Package.PackageRequest;
 import com.app.logistica.exceptions.ResourceNotFoundException;
 import com.app.logistica.services.PackageService;
 import lombok.RequiredArgsConstructor;
@@ -20,35 +20,35 @@ public class PackageController {
 
     // 🔹 Crear package dentro de una Order
     @PostMapping("/orders/{orderId}/packages")
-    public ResponseEntity<PackageDTO> createForOrder(
+    public ResponseEntity<PackageRequest> createForOrder(
             @PathVariable Long orderId,
-            @RequestBody PackageDTO dto
+            @RequestBody PackageRequest dto
     ) {
-        PackageDTO saved = packageService.createForOrder(orderId, dto);
+        PackageRequest saved = packageService.createForOrder(orderId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     // 🔹 Listar packages de una Order
     @GetMapping("/orders/{orderId}/packages")
-    public ResponseEntity<List<PackageDTO>> getByOrder(@PathVariable Long orderId) {
+    public ResponseEntity<List<PackageRequest>> getByOrder(@PathVariable Long orderId) {
         return ResponseEntity.ok(packageService.getByOrder(orderId));
     }
 
     // 🔹 CRUD general de packages
     @GetMapping("/packages")
-    public ResponseEntity<List<PackageDTO>> getAll() {
+    public ResponseEntity<List<PackageRequest>> getAll() {
         return ResponseEntity.ok(packageService.getPackages());
     }
 
     @GetMapping("/packages/{id}")
-    public ResponseEntity<PackageDTO> getOne(@PathVariable Long id) {
+    public ResponseEntity<PackageRequest> getOne(@PathVariable Long id) {
         return ResponseEntity.ok(packageService.getPackage(id));
     }
 
     @PutMapping("/packages/{id}")
-    public ResponseEntity<PackageDTO> update(
+    public ResponseEntity<PackageRequest> update(
             @PathVariable Long id,
-            @RequestBody PackageDTO dto
+            @RequestBody PackageRequest dto
     ) {
         return ResponseEntity.ok(packageService.updatePackage(id, dto));
     }

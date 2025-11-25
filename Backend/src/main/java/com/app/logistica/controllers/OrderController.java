@@ -1,6 +1,6 @@
 package com.app.logistica.controllers;
 
-import com.app.logistica.dtos.OrderDTO;
+import com.app.logistica.dtos.order.OrderRequest;
 import com.app.logistica.services.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,38 +17,38 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping("/orders")
-    public ResponseEntity<List<OrderDTO>> listAll() {
-        List<OrderDTO> list = orderService.listByCustomer(null);
+    public ResponseEntity<List<OrderRequest>> listAll() {
+        List<OrderRequest> list = orderService.listByCustomer(null);
         return ResponseEntity.ok(list);
     }
 
     @GetMapping("/customers/{customerId}/orders")
-    public ResponseEntity<List<OrderDTO>> listByCustomer(@PathVariable Long customerId) {
-        List<OrderDTO> list = orderService.listByCustomer(customerId);
+    public ResponseEntity<List<OrderRequest>> listByCustomer(@PathVariable Long customerId) {
+        List<OrderRequest> list = orderService.listByCustomer(customerId);
         return ResponseEntity.ok(list);
     }
 
     @GetMapping("/orders/{orderId}")
-    public ResponseEntity<OrderDTO> getById(@PathVariable Long orderId){
-        OrderDTO orderDTO = orderService.getById(orderId);
-        return ResponseEntity.ok(orderDTO);
+    public ResponseEntity<OrderRequest> getById(@PathVariable Long orderId){
+        OrderRequest orderRequest = orderService.getById(orderId);
+        return ResponseEntity.ok(orderRequest);
     }
 
     @PostMapping("/orders")
-    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderDTO orderDTO){
-        if(orderDTO.getCustomerId() == null){
+    public ResponseEntity<OrderRequest> createOrder(@RequestBody OrderRequest orderRequest){
+        if(orderRequest.getCustomerId() == null){
             return ResponseEntity.badRequest().build();
         }
-        OrderDTO created = orderService.createOrder(orderDTO.getCustomerId(), orderDTO);
+        OrderRequest created = orderService.createOrder(orderRequest.getCustomerId(), orderRequest);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @PutMapping("/orders/{orderId}")
-    public ResponseEntity<OrderDTO> updateOrder(@PathVariable Long orderId, @RequestBody OrderDTO orderDTO){
-        if(orderDTO.getCustomerId() == null){
+    public ResponseEntity<OrderRequest> updateOrder(@PathVariable Long orderId, @RequestBody OrderRequest orderRequest){
+        if(orderRequest.getCustomerId() == null){
             return ResponseEntity.badRequest().build();
         }
-        OrderDTO updated = orderService.update(orderId, orderDTO);
+        OrderRequest updated = orderService.update(orderId, orderRequest);
         return ResponseEntity.ok(updated);
     }
 

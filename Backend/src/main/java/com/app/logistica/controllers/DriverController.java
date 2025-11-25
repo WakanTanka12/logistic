@@ -1,7 +1,7 @@
 package com.app.logistica.controllers;
 
 
-import com.app.logistica.dtos.DriverDTO;
+import com.app.logistica.dtos.driver.DriverRequest;
 import com.app.logistica.exceptions.ResourceNotFoundException;
 import com.app.logistica.services.DriverService;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +18,9 @@ import java.util.List;
 public class DriverController {
     private final DriverService driverService;
     @PostMapping
-    public ResponseEntity<DriverDTO> createDriver(@RequestBody DriverDTO driverDTO) {
-        DriverDTO savedDriverDTO = driverService.createDriver(driverDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedDriverDTO);
+    public ResponseEntity<DriverRequest> createDriver(@RequestBody DriverRequest driverRequest) {
+        DriverRequest savedDriverRequest = driverService.createDriver(driverRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedDriverRequest);
     }
 
     /**
@@ -28,8 +28,8 @@ public class DriverController {
      * GET: /api/drivers
      */
     @GetMapping
-    public ResponseEntity<List<DriverDTO>> getAllDrivers() {
-        List<DriverDTO> drivers = driverService.getDrivers();
+    public ResponseEntity<List<DriverRequest>> getAllDrivers() {
+        List<DriverRequest> drivers = driverService.getDrivers();
         return ResponseEntity.ok(drivers);
     }
 
@@ -38,9 +38,9 @@ public class DriverController {
      * GET: /api/drivers/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<DriverDTO> getDriverById(@PathVariable Long id) {
-        DriverDTO driverDTO = driverService.getDriver(id);
-        return ResponseEntity.ok(driverDTO);
+    public ResponseEntity<DriverRequest> getDriverById(@PathVariable Long id) {
+        DriverRequest driverRequest = driverService.getDriver(id);
+        return ResponseEntity.ok(driverRequest);
     }
 
     /**
@@ -48,12 +48,12 @@ public class DriverController {
      * PUT: /api/drivers/{id}
      */
     @PutMapping("/{id}")
-    public ResponseEntity<DriverDTO> updateDriver(
+    public ResponseEntity<DriverRequest> updateDriver(
             @PathVariable Long id,
-            @RequestBody DriverDTO driverDTO
+            @RequestBody DriverRequest driverRequest
     )
     {
-        DriverDTO updatedDriver = driverService.updateDriver(id, driverDTO);
+        DriverRequest updatedDriver = driverService.updateDriver(id, driverRequest);
         return ResponseEntity.ok(updatedDriver);
     }
 

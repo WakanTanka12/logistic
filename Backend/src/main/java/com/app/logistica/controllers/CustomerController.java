@@ -1,6 +1,6 @@
 package com.app.logistica.controllers;
 
-import com.app.logistica.dtos.CustomerDTO;
+import com.app.logistica.dtos.customer.CustomerRequest;
 import com.app.logistica.services.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,27 +17,27 @@ public class CustomerController {
     private CustomerService customerService;
 
     @PostMapping
-    public ResponseEntity<CustomerDTO> createCustomer(@RequestBody CustomerDTO customerDTO) {
-        CustomerDTO savedCustomerDTO = customerService.createCustomer(customerDTO);
-        return new  ResponseEntity<>(savedCustomerDTO, HttpStatus.CREATED);
+    public ResponseEntity<CustomerRequest> createCustomer(@RequestBody CustomerRequest customerRequest) {
+        CustomerRequest savedCustomerRequest = customerService.createCustomer(customerRequest);
+        return new  ResponseEntity<>(savedCustomerRequest, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<List<CustomerDTO>> getAllCustomers() {
-        List<CustomerDTO> customerDTOs = customerService.getAllCustomers();
-        return ResponseEntity.ok(customerDTOs);
+    public ResponseEntity<List<CustomerRequest>> getAllCustomers() {
+        List<CustomerRequest> customerRequests = customerService.getAllCustomers();
+        return ResponseEntity.ok(customerRequests);
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<CustomerDTO> getCustomer(@PathVariable Long id) {
-        CustomerDTO customerDTO = customerService.getCustomer(id);
-        return ResponseEntity.ok(customerDTO);
+    public ResponseEntity<CustomerRequest> getCustomer(@PathVariable Long id) {
+        CustomerRequest customerRequest = customerService.getCustomer(id);
+        return ResponseEntity.ok(customerRequest);
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<CustomerDTO> updateCustomer(@RequestBody CustomerDTO customerDTO, @PathVariable Long id) {
-        CustomerDTO savedCustomerDTO = customerService.updateCustomer(id, customerDTO);
-        return ResponseEntity.ok(savedCustomerDTO);
+    public ResponseEntity<CustomerRequest> updateCustomer(@RequestBody CustomerRequest customerRequest, @PathVariable Long id) {
+        CustomerRequest savedCustomerRequest = customerService.updateCustomer(id, customerRequest);
+        return ResponseEntity.ok(savedCustomerRequest);
     }
 
 

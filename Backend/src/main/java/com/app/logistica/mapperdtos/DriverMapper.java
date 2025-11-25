@@ -1,47 +1,47 @@
 package com.app.logistica.mapperdtos;
 
-import com.app.logistica.dtos.DeliveryDTO;
-import com.app.logistica.dtos.DriverDTO;
+import com.app.logistica.dtos.delivery.DeliveryRequest;
+import com.app.logistica.dtos.driver.DriverRequest;
 import com.app.logistica.entities.Driver;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class DriverMapper {
-    public static DriverDTO mapDriverToDriverDTO(Driver driver) {
+public interface DriverMapper {
+    public static DriverRequest mapDriverToDriverDTO(Driver driver) {
         if (driver == null) return null;
 
 // --- Deliveries -> DTOs
-        List<DeliveryDTO> deliveryDTOs = null;
+        List<DeliveryRequest> deliveryRequests = null;
         if (driver.getDeliveries() != null) {
-            deliveryDTOs = driver.getDeliveries()
+            deliveryRequests = driver.getDeliveries()
                     .stream()
                     .map(DeliveryMapper::toDTO)
                     .collect(Collectors.toList());
         }
 
-        DriverDTO dto = new DriverDTO();
+        DriverRequest dto = new DriverRequest();
         dto.setId(driver.getId());
         dto.setFirstName(driver.getFirstName());
         dto.setLastName(driver.getLastName());
 
-        dto.setDeliveries(deliveryDTOs);
+        dto.setDeliveries(deliveryRequests);
 
         return dto;
 
     }
-    public static Driver mapDriverDTOToDriver(DriverDTO driverDTO) {
-        if (driverDTO == null) return null;
+    public static Driver mapDriverDTOToDriver(DriverRequest driverRequest) {
+        if (driverRequest == null) return null;
 
         Driver d = new Driver();
-        d.setId(driverDTO.getId());
-        d.setFirstName(driverDTO.getFirstName());
-        d.setLastName(driverDTO.getLastName());
+        d.setId(driverRequest.getId());
+        d.setFirstName(driverRequest.getFirstName());
+        d.setLastName(driverRequest.getLastName());
 
 // Deliveries -> Entities (bidirectional)
-        if (driverDTO.getDeliveries() != null) {
-            driverDTO.getDeliveries().stream()
+        if (driverRequest.getDeliveries() != null) {
+            driverRequest.getDeliveries().stream()
                     .filter(Objects::nonNull)
                     .map(DeliveryMapper::toEntity)
                     .forEach(d::addDelivery);

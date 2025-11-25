@@ -1,6 +1,5 @@
 package com.app.logistica.entities;
 
-import com.app.logistica.entities.embedded.Dimensions;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,15 +24,11 @@ public class Package {
     @JsonManagedReference
      private Order order;
 
-    @Embedded
-    private Dimensions dimensions;
-
     private float weight;
+    private float length;
+    private float width;
+    private float height;
 
-    public Package(Long id, Dimensions dimensions, float weight) {
-        this.id = id;
-        this.dimensions = dimensions;
-        this.weight = weight;
-    }
+
 }
 

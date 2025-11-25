@@ -1,16 +1,14 @@
 package com.app.logistica.services;
 
-import com.app.logistica.dtos.DeliveryDTO;
-import com.app.logistica.dtos.DriverDTO;
-import com.app.logistica.entities.Driver;
+import com.app.logistica.dtos.driver.DriverRequest;
 
 import java.util.List;
 
 public interface DriverService {
-    DriverDTO createDriver(DriverDTO driverDTO);
-    DriverDTO updateDriver(Long driverID, DriverDTO driverDTO);
+    DriverRequest createDriver(DriverRequest driverRequest);
+    DriverRequest updateDriver(Long driverID, DriverRequest driverRequest);
     String deleteDriver(Long driverID);
-    DriverDTO getDriver(Long driverID);
-    List<DriverDTO> getDrivers();
+    DriverRequest getDriver(Long driverID);
+    List<DriverRequest> getDrivers();
 
 }
