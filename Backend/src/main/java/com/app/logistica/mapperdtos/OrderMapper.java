@@ -1,46 +1,91 @@
-package com.app.logistica.mapperdtos;
+package com.app.logistica.mappers;
 
 import com.app.logistica.dtos.order.OrderRequest;
+import com.app.logistica.dtos.order.OrderResponse;
 import com.app.logistica.entities.Customer;
 import com.app.logistica.entities.Order;
+import com.app.logistica.entities.Package;
+import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface OrderMapper {
 
-    public static OrderRequest mapOrderToOrderDTO(Order order) {
-        OrderRequest orderRequest = new OrderRequest();
-        orderRequest.setId(order.getId());
-        orderRequest.setOrderDate(order.getOrderDate());
-        orderRequest.setPrice(order.getPrice());
-        orderRequest.setDetails(order.getDetails());
-        orderRequest.setCustomerId(order.getCustomer().getId());
+    // ✅ DTO → Entity (para creación)
+    default Order toEntity(OrderRequest dto) {
+        if (dto == null) return null;
 
-        // 👇 Añadimos lista de packages si existe
-        if (order.getPackages() != null && !order.getPackages().isEmpty()) {
-            orderRequest.setPackages(
-                    order.getPackages()
-                            .stream()
-                            .map(PackageMapper::toDTO) // usa tu PackageMapper
-                            .collect(Collectors.toList())
-            );
+        Order entity = new Order();
+        entity.setOrderDate(dto.getOrderDate());
+        entity.setPrice(dto.getPrice());
+        entity.setDetails(dto.getDetails());
+
+        // Relación con Customer (solo por ID)
+        if (dto.getCustomerId() != null) {
+            Customer customer = new Customer();
+            customer.setId(dto.getCustomerId());
+            entity.setCustomer(customer);
         }
 
-        return orderRequest;
+        // Los paquetes se asocian en el Service usando packageIds
+        return entity;
     }
 
-    public static Order mapOrderDTOtoOrder(OrderRequest orderRequest) {
-        Customer customer = new Customer();
-        customer.setId(orderRequest.getCustomerId());
+    // ✅ Entity → DTO (para lectura)
+    default OrderResponse toResponse(Order entity) {
+        if (entity == null) return null;
 
-        Order order = new Order();
-        order.setId(orderRequest.getId());
-        order.setOrderDate(orderRequest.getOrderDate());
-        order.setPrice(orderRequest.getPrice());
-        order.setDetails(orderRequest.getDetails());
-        order.setCustomer(customer);
+        OrderResponse dto = new OrderResponse();
+        dto.setId(entity.getId());
+        dto.setOrderDate(entity.getOrderDate());
+        dto.setPrice(entity.getPrice());
+        dto.setDetails(entity.getDetails());
 
+        // Customer ID
+        if (entity.getCustomer() != null) {
+            dto.setCustomerId(entity.getCustomer().getId());
+        }
 
-        return order;
+        // Package IDs
+        if (entity.getPackages() != null) {
+            dto.setPackageIds(
+                    entity.getPackages().stream()
+                            .filter(Objects::nonNull)
+                            .map(Package::getId)
+                            .collect(Collectors.toList())
+            );
+        } else {
+            dto.setPackageIds(new ArrayList<>());
+        }
+
+        return dto;
+    }
+
+    // ✅ Lista de entidades → Lista de DTOs
+    default List<OrderResponse> toResponseList(List<Order> entities) {
+        if (entities == null) return new ArrayList<>();
+        return entities.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    // ✅ Actualización parcial desde DTO → Entity
+    default void updateEntityFromRequest(OrderRequest dto, Order entity) {
+        if (dto == null || entity == null) return;
+
+        if (dto.getOrderDate() != null) entity.setOrderDate(dto.getOrderDate());
+        if (dto.getPrice() != null) entity.setPrice(dto.getPrice());
+        if (dto.getDetails() != null && !dto.getDetails().isBlank()) entity.setDetails(dto.getDetails());
+
+        if (dto.getCustomerId() != null) {
+            Customer customer = new Customer();
+            customer.setId(dto.getCustomerId());
+            entity.setCustomer(customer);
+        }
     }
 }

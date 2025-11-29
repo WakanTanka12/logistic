@@ -1,43 +1,59 @@
 package com.app.logistica.mapperdtos;
 
 import com.app.logistica.dtos.route.RouteRequest;
+import com.app.logistica.dtos.route.RouteResponse;
 import com.app.logistica.entities.Route;
 
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 public interface RouteMapper {
 
-    public static RouteRequest toDTO(Route route) {
-        if (route == null) return null;
+    // ============================================================
+    // 🔹 Entity → Response (lo que el frontend recibe)
+    // ============================================================
+    static RouteResponse toResponse(Route entity) {
+        if (entity == null) return null;
 
-        RouteRequest dto = new RouteRequest();
-        dto.setId(route.getId());
-        dto.setRouteName(route.getRouteName());
-        dto.setOrigin(route.getOrigin());
-        dto.setDestination(route.getDestination());
-        dto.setDistance(route.getDistance());
-        dto.setEstimatedDuration(route.getEstimatedDuration());
+        RouteResponse dto = new RouteResponse();
+        dto.setId(entity.getId());
+        dto.setRouteName(entity.getRouteName());
+        dto.setOrigin(entity.getOrigin());
+        dto.setDestination(entity.getDestination());
+        dto.setDistance(entity.getDistance());
+        dto.setEstimatedDuration(entity.getEstimatedDuration());
 
-        if (route.getDeliveries() != null) {
-            dto.setDeliveries(route.getDeliveries()
-                    .stream()
-                    .map(DeliveryMapper::toDTO)
-                    .collect(Collectors.toList()));
+        // Lista de IDs de deliveries (Long)
+        if (entity.getDeliveries() != null) {
+            dto.setDeliveryIds(
+                    entity.getDeliveries()
+                            .stream()
+                            .map(delivery -> delivery.getId())
+                            .collect(Collectors.toList())
+            );
+        } else {
+            dto.setDeliveryIds(Collections.emptyList());
         }
 
         return dto;
     }
 
-    public static Route toEntity(RouteRequest dto) {
+    // ============================================================
+    // 🔹 Request → Entity (cuando creas o editas)
+    // ============================================================
+    static Route toEntity(RouteRequest dto) {
         if (dto == null) return null;
 
         Route route = new Route();
-        route.setId(dto.getId());
         route.setRouteName(dto.getRouteName());
         route.setOrigin(dto.getOrigin());
         route.setDestination(dto.getDestination());
         route.setDistance(dto.getDistance());
         route.setEstimatedDuration(dto.getEstimatedDuration());
+
+        // Los deliveries NO se asignan aquí
+        // porque se asignan en el DeliveryService cuando se asocia
+
         return route;
     }
 }

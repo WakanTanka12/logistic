@@ -1,14 +1,23 @@
 package com.app.logistica.services;
 
 import com.app.logistica.dtos.order.OrderRequest;
+import com.app.logistica.dtos.order.OrderResponse;
+
 import java.util.List;
 
 public interface OrderService {
-    List<OrderRequest> listAll();
-    List<OrderRequest> listByCustomer(Long customerId);
-    OrderRequest createOrder(Long customerId, OrderRequest orderRequest);
-    OrderRequest getById(Long orderId);
-    OrderRequest update(Long orderId, OrderRequest orderRequest);
+
+    List<OrderResponse> listAll();
+
+    List<OrderResponse> listByCustomer(Long customerId);
+
+    OrderResponse createOrder(Long customerId, OrderRequest request);
+
+    OrderResponse getById(Long orderId);
+
+    OrderResponse update(Long orderId, OrderRequest request);
+
     void remove(Long customerId, Long orderId);
+
     void deleteById(Long orderId);
 }

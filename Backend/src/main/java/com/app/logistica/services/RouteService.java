@@ -1,19 +1,19 @@
 package com.app.logistica.services;
 
-
 import com.app.logistica.dtos.route.RouteRequest;
+import com.app.logistica.dtos.route.RouteResponse;
+
 import java.util.List;
 
 public interface RouteService {
 
-    RouteRequest createRoute(RouteRequest dto);
+    RouteResponse createRoute(RouteRequest dto);
 
-    RouteRequest updateRoute(Long id, RouteRequest dto);
+    RouteResponse updateRoute(Long id, RouteRequest dto);
 
-    RouteRequest getRoute(Long id);
+    RouteResponse getRoute(Long id);
 
-    List<RouteRequest> getAllRoutes();
+    List<RouteResponse> getAllRoutes();
 
     String deleteRoute(Long id);
 }
-
