@@ -22,7 +22,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerRequest createCustomer(CustomerRequest customerRequest) {
-        Customer customer = CustomerMapper.mapCustomerDTOToCustomer(customerRequest);
+        Customer customer = CustomerMapper.toEntity(customerRequest);
 
         Customer savedCustomer = customerRepository.save(customer);
         return CustomerMapper.toResponse(savedCustomer);

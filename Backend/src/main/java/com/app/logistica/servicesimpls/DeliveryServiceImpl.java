@@ -37,7 +37,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     public List<DeliveryRequest> listAll() {
         return deliveryRepository.findAll()
                 .stream()
-                .map(DeliveryMapper::toDTO)
+                .map(DeliveryMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -56,7 +56,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         return deliveryRepository.findByDriverId(driverId)
                 .stream()
-                .map(DeliveryMapper::toDTO)
+                .map(DeliveryMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -83,7 +83,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         delivery.setRoute(route);
 
         Delivery saved = deliveryRepository.save(delivery);
-        return DeliveryMapper.toDTO(saved);
+        return DeliveryMapper.toResponse(saved);
     }
 
     // ===============================================================
@@ -94,7 +94,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     public DeliveryRequest getById(Long deliveryId) {
         Delivery delivery = deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Delivery no encontrado con id=" + deliveryId));
-        return DeliveryMapper.toDTO(delivery);
+        return DeliveryMapper.toResponse(delivery);
     }
     // ===============================================================
 // 🔹 Update delivery (by driver and delivery ID)
@@ -126,7 +126,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         }
 
         Delivery updated = deliveryRepository.save(delivery);
-        return DeliveryMapper.toDTO(updated);
+        return DeliveryMapper.toResponse(updated);
     }
 
 

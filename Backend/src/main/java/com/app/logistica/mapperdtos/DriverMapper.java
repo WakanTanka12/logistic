@@ -1,53 +1,34 @@
 package com.app.logistica.mapperdtos;
 
-import com.app.logistica.dtos.delivery.DeliveryRequest;
 import com.app.logistica.dtos.driver.DriverRequest;
+import com.app.logistica.dtos.driver.DriverResponse;
+import com.app.logistica.entities.Delivery;
 import com.app.logistica.entities.Driver;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface DriverMapper {
-    public static DriverRequest mapDriverToDriverDTO(Driver driver) {
-        if (driver == null) return null;
 
-// --- Deliveries -> DTOs
-        List<DeliveryRequest> deliveryRequests = null;
-        if (driver.getDeliveries() != null) {
-            deliveryRequests = driver.getDeliveries()
-                    .stream()
-                    .map(DeliveryMapper::toDTO)
-                    .collect(Collectors.toList());
+    // ✅ Entity -> Response (Convierte List<Delivery> a List<Long>)
+    @Mapping(source = "deliveries", target = "deliveryIds")
+    DriverResponse toResponse(Driver entity);
+
+    // ✅ Request -> Entity (Simple, no hay relaciones complejas en el Request)
+    Driver toEntity(DriverRequest request);
+
+    // 💡 Método auxiliar que MapStruct usará automáticamente para la línea @Mapping de arriba
+    default List<Long> mapDeliveriesToIds(List<Delivery> deliveries) {
+        if (deliveries == null) {
+            return new ArrayList<>();
         }
-
-        DriverRequest dto = new DriverRequest();
-        dto.setId(driver.getId());
-        dto.setFirstName(driver.getFirstName());
-        dto.setLastName(driver.getLastName());
-
-        dto.setDeliveries(deliveryRequests);
-
-        return dto;
-
-    }
-    public static Driver mapDriverDTOToDriver(DriverRequest driverRequest) {
-        if (driverRequest == null) return null;
-
-        Driver d = new Driver();
-        d.setId(driverRequest.getId());
-        d.setFirstName(driverRequest.getFirstName());
-        d.setLastName(driverRequest.getLastName());
-
-// Deliveries -> Entities (bidirectional)
-        if (driverRequest.getDeliveries() != null) {
-            driverRequest.getDeliveries().stream()
-                    .filter(Objects::nonNull)
-                    .map(DeliveryMapper::toEntity)
-                    .forEach(d::addDelivery);
-        }
-
-        return d;
-
+        return deliveries.stream()
+                .map(Delivery::getId)
+                .collect(Collectors.toList());
     }
 }

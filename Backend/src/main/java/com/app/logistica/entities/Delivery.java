@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -20,6 +21,7 @@ import java.util.Collection;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Delivery {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,14 +48,5 @@ public class Delivery {
 
     private LocalDate deliveryDate;
     private String status;
-
-    public Delivery(Long id, LocalDate deliveryDate, String status) {
-        this.id = id;
-        this.deliveryDate = deliveryDate;
-        this.status = status;
-
-    }
-
-
 
 }

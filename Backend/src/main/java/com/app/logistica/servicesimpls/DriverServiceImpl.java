@@ -22,12 +22,12 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverRequest createDriver(DriverRequest driverRequest) {
-        Driver driver = DriverMapper.mapDriverDTOToDriver(driverRequest);
+        Driver driver = DriverMapper.toEntity(driverRequest);
         Driver savedDriver = driverRepository.save(driver);
 
 
 
-        return DriverMapper.mapDriverToDriverDTO(savedDriver);
+        return DriverMapper.toResponse(savedDriver);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class DriverServiceImpl implements DriverService {
         }
 
         Driver updatedDriver = driverRepository.save(driver);
-        return DriverMapper.mapDriverToDriverDTO(updatedDriver);
+        return DriverMapper.toResponse(updatedDriver);
 
     }
 
@@ -69,7 +69,7 @@ public class DriverServiceImpl implements DriverService {
         Driver driver = driverRepository.findById(driverID)
                 .orElseThrow(() -> new ResourceNotFoundException("Driver not found with id " + driverID));
 
-        return DriverMapper.mapDriverToDriverDTO(driver);
+        return DriverMapper.toResponse(driver);
 
     }
 
@@ -79,7 +79,7 @@ public class DriverServiceImpl implements DriverService {
 
 // Ya no es necesario driver.getDeliveries().size(), Hibernate carga todo por @EntityGraph
         return drivers.stream()
-                .map(DriverMapper::mapDriverToDriverDTO)
+                .map(DriverMapper::toResponse)
                 .collect(Collectors.toList());
 
     }
