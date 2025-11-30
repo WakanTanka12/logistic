@@ -5,7 +5,7 @@ import com.app.logistica.dtos.auth.AuthenticationResponse;
 import com.app.logistica.dtos.auth.RegisterRequest;
 import com.app.logistica.entities.User;
 import com.app.logistica.repositories.UserRepository;
-import com.app.logistica.serviceimpls.AuthServiceImpl;
+import com.app.logistica.servicesimpls.AuthServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

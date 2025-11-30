@@ -43,7 +43,7 @@ public class DriverServiceImpl implements DriverService {
         // 2. Actualizar campos (puedes agregar más campos si tu DTO tiene email, teléfono, etc.)
         driver.setFirstName(driverRequest.getFirstName());
         driver.setLastName(driverRequest.getLastName());
-        
+
         // 3. Guardar cambios
         Driver updatedDriver = driverRepository.save(driver);
 
