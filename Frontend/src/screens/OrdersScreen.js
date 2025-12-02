@@ -26,12 +26,12 @@ export default function OrdersScreen() {
         customerId: "",
     });
 
-    // Cargar todas las órdenes
+    // 🔹 Cargar todas las órdenes
     const loadOrders = async () => {
         try {
             setLoading(true);
             const res = await getAllOrders();
-            setOrders(res.data);
+            setOrders(res.data); // List<OrderResponse>
         } catch (err) {
             console.error("Error fetching orders:", err);
             Alert.alert("Error", "No se pudieron cargar las órdenes");
@@ -40,11 +40,11 @@ export default function OrdersScreen() {
         }
     };
 
-    // Cargar todos los clientes
+    // 🔹 Cargar todos los clientes
     const loadCustomers = async () => {
         try {
             const res = await getAllCustomers();
-            setCustomers(res.data);
+            setCustomers(res.data); // List<CustomerResponse> con firstName / lastName
         } catch (err) {
             console.error("Error cargando clientes:", err);
         }
@@ -55,18 +55,19 @@ export default function OrdersScreen() {
         loadCustomers();
     }, []);
 
-    // Editar una orden
+    // 🔹 Editar una orden
     const handleEdit = (order) => {
         setForm({
             id: order.id,
             orderDate: order.orderDate || "",
-            price: String(order.price || ""),
+            price: order.price != null ? String(order.price) : "",
             details: order.details || "",
-            customerId: order.customer?.id ? String(order.customer.id) : "",
+            // AHORA usando customerId directo del OrderResponse
+            customerId: order.customerId != null ? String(order.customerId) : "",
         });
     };
 
-    // Eliminar una orden
+    // 🔹 Eliminar una orden
     const handleDelete = (id) => {
         Alert.alert("Confirmar", "¿Eliminar esta orden?", [
             { text: "Cancelar", style: "cancel" },
@@ -76,7 +77,7 @@ export default function OrdersScreen() {
                 onPress: async () => {
                     try {
                         await deleteOrder(id);
-                        await loadOrders(); // Recargar órdenes después de eliminar
+                        await loadOrders();
                     } catch (err) {
                         console.error("Error deleting order:", err);
                         Alert.alert("Error", "No se pudo eliminar la orden");
@@ -86,7 +87,7 @@ export default function OrdersScreen() {
         ]);
     };
 
-    // Guardar nueva o actualizar orden
+    // 🔹 Guardar nueva o actualizar orden
     const handleSubmit = async () => {
         if (!form.customerId) {
             Alert.alert("Error", "Selecciona un cliente (customerId)");
@@ -96,10 +97,13 @@ export default function OrdersScreen() {
         const priceNumber = form.price ? Number(form.price) : 0;
 
         const payload = {
-            orderDate: form.orderDate || new Date().toISOString(),
+            // Si no llenan fecha, mandamos hoy en formato YYYY-MM-DD
+            orderDate: form.orderDate || new Date().toISOString().slice(0, 10),
             price: priceNumber,
             details: form.details || "",
             customerId: Number(form.customerId),
+            // Si tu backend tiene packageIds opcional, podrías mandar []
+            // packageIds: []
         };
 
         try {
@@ -127,13 +131,13 @@ export default function OrdersScreen() {
         }
     };
 
-    // Obtener el nombre del cliente basado en el `customerId`
+    // 🔹 Obtener el nombre del cliente basado en el `customerId`
     const getCustomerName = (customerId) => {
         const c = customers.find((x) => x.id === customerId);
-        return c ? c.firstName + " " + c.lastName : "N/D";
+        return c ? `${c.firstName} ${c.lastName}` : "N/D";
     };
 
-    // Renderizar cada orden
+    // 🔹 Renderizar cada orden
     const renderItem = ({ item }) => (
         <View style={styles.card}>
             <Text style={styles.title}>Orden #{item.id}</Text>
@@ -182,7 +186,7 @@ export default function OrdersScreen() {
 
                 <TextInput
                     style={styles.input}
-                    placeholder="Fecha de la orden"
+                    placeholder="Fecha de la orden (YYYY-MM-DD)"
                     value={form.orderDate}
                     onChangeText={(text) => setForm((f) => ({ ...f, orderDate: text }))}
                 />
@@ -207,7 +211,9 @@ export default function OrdersScreen() {
                     placeholder="Customer ID"
                     value={form.customerId}
                     keyboardType="numeric"
-                    onChangeText={(text) => setForm((f) => ({ ...f, customerId: text }))}
+                    onChangeText={(text) =>
+                        setForm((f) => ({ ...f, customerId: text }))
+                    }
                 />
 
                 <TouchableOpacity

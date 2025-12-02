@@ -1,36 +1,53 @@
 // src/api/ordersApi.js
-import apiClient from "./client";
-
-export const getOrders = async () => {
-    const res = await apiClient.get("/orders");
-    return res.data;
-};
-
-export const getOrderById = async (id) => {
-    const res = await apiClient.get(`/orders/${id}`);
-    return res.data;
-};
-
-export const createOrder = async (order) => {
-    const res = await apiClient.post("/orders", order);
-    return res.data;
-};
-
-export const updateOrder = async (id, order) => {
-    const res = await apiClient.put(`/orders/${id}`, order);
-    return res.data;
-};
-// src/api/ordersApi.js
 import api from "./api";
 
 const BASE_URL = "/orders";
 const CUSTOMER_URL = "/customers";
 
+/**
+ * 🔹 Obtener todas las órdenes
+ * GET /api/orders
+ */
 export const getAllOrders = () => api.get(BASE_URL);
-export const getOrderById = (id) => api.get(`${BASE_URL}/${id}`);
-export const createOrder = (order) => api.post(BASE_URL, order);
-export const updateOrder = (id, order) => api.put(`${BASE_URL}/${id}`, order);
-export const deleteOrder = (id) => api.delete(`${BASE_URL}/${id}`);
 
-// extra
-export const getAllCustomers = () => api.get(CUSTOMER_URL);
+/**
+ * 🔹 Obtener una orden por ID
+ * GET /api/orders/{id}
+ */
+export const getOrderById = (id) => api.get(`${BASE_URL}/${id}`);
+
+/**
+ * 🔹 Crear una nueva orden
+ * POST /api/orders
+ * body: { orderDate, price, details, customerId, packageIds[] }
+ */
+export const createOrder = (order) => api.post(BASE_URL, order);
+
+/**
+ * 🔹 Actualizar una orden existente
+ * PUT /api/orders/{id}
+ */
+export const updateOrder = (id, order) => api.put(`${BASE_URL}/${id}`, order);
+
+/**
+ * 🔹 Eliminar una orden
+ * DELETE /api/orders/{id}
+ * (si quieres pasar customerId para validar relación:)
+ *   deleteOrder(id, customerId)
+ */
+export const deleteOrder = (id, customerId) => {
+    if (customerId) {
+        // llama: DELETE /api/orders/{id}?customerId={customerId}
+        return api.delete(`${BASE_URL}/${id}`, {
+            params: { customerId },
+        });
+    }
+    return api.delete(`${BASE_URL}/${id}`);
+};
+
+/**
+ * 🔹 Obtener todas las órdenes de un cliente
+ * GET /api/customers/{customerId}/orders
+ */
+export const getOrdersByCustomer = (customerId) =>
+    api.get(`${CUSTOMER_URL}/${customerId}/orders`);

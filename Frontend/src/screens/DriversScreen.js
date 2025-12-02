@@ -3,28 +3,33 @@ import {
     View,
     Text,
     FlatList,
+    TextInput,
     TouchableOpacity,
     StyleSheet,
     ActivityIndicator,
     Alert,
 } from "react-native";
-import { getAllDrivers, deleteDriver, updateDriver, createDriver } from "../api/driversApi";
-import { getDeliveriesByDriver } from "../api/deliveriesApi";  // Para obtener entregas por conductor
+import {
+    getAllDrivers,
+    deleteDriver,
+    updateDriver,
+    createDriver,
+} from "../api/driversApi";
+import { getDeliveriesByDriver } from "../api/deliveriesApi"; // Para obtener entregas por conductor
 
 export default function DriversScreen() {
     const [drivers, setDrivers] = useState([]);
-    const [deliveries, setDeliveries] = useState({}); // Almacenaremos las entregas por driverId
+    const [deliveries, setDeliveries] = useState({}); // { [driverId]: DeliveryResponse[] }
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+
     const [form, setForm] = useState({
         id: null,
         firstName: "",
         lastName: "",
-
-
     });
 
-    // Cargar todos los conductores
+    // 🔹 Cargar todos los conductores
     const loadDrivers = async () => {
         try {
             setLoading(true);
@@ -38,13 +43,13 @@ export default function DriversScreen() {
         }
     };
 
-    // Cargar entregas por conductor
+    // 🔹 Cargar entregas de un conductor
     const loadDeliveriesForDriver = async (driverId) => {
         try {
             const res = await getDeliveriesByDriver(driverId);
-            setDeliveries((prevDeliveries) => ({
-                ...prevDeliveries,
-                [driverId]: res.data, // Asociamos las entregas con el driverId
+            setDeliveries((prev) => ({
+                ...prev,
+                [driverId]: res.data,
             }));
         } catch (err) {
             console.error("Error fetching deliveries for driver:", err);
@@ -59,7 +64,7 @@ export default function DriversScreen() {
         // Cargar entregas para cada conductor una vez que los conductores estén cargados
         drivers.forEach((driver) => {
             if (driver.id) {
-                loadDeliveriesForDriver(driver.id); // Llamar la API para obtener entregas de cada conductor
+                loadDeliveriesForDriver(driver.id);
             }
         });
     }, [drivers]);
@@ -69,8 +74,6 @@ export default function DriversScreen() {
             id: driver.id,
             firstName: driver.firstName || "",
             lastName: driver.lastName || "",
-
-
         });
     };
 
@@ -83,7 +86,7 @@ export default function DriversScreen() {
                 onPress: async () => {
                     try {
                         await deleteDriver(id);
-                        await loadDrivers(); // Recargar los conductores después de eliminar
+                        await loadDrivers();
                     } catch (err) {
                         console.error("Error deleting driver:", err);
                         Alert.alert("Error", "No se pudo eliminar el conductor");
@@ -99,22 +102,21 @@ export default function DriversScreen() {
             return;
         }
 
+        const payload = {
+            firstName: form.firstName,
+            lastName: form.lastName,
+        };
+
         try {
             setSaving(true);
-            const payload = {
-                firstName: form.firstName,
-                lastName: form.lastName,
-
-
-            };
 
             if (form.id) {
-                await updateDriver(form.id, payload); // Actualizar conductor
+                await updateDriver(form.id, payload);
             } else {
-                await createDriver(payload); // Crear conductor
+                await createDriver(payload);
             }
 
-            setForm({ id: null, firstName: "", lastName: ""});
+            setForm({ id: null, firstName: "", lastName: "" });
             await loadDrivers();
         } catch (err) {
             console.error("Error saving driver:", err);
@@ -125,14 +127,13 @@ export default function DriversScreen() {
     };
 
     const renderItem = ({ item }) => {
-        const driverDeliveries = deliveries[item.id] || []; // Filtramos las entregas de este conductor
+        const driverDeliveries = deliveries[item.id] || [];
 
         return (
             <View style={styles.card}>
                 <Text style={styles.title}>
                     {item.firstName} {item.lastName}
                 </Text>
-
 
                 {/* Relación con las entregas */}
                 <View style={styles.deliveriesContainer}>
@@ -144,7 +145,9 @@ export default function DriversScreen() {
                             </Text>
                         ))
                     ) : (
-                        <Text style={styles.text}>Este conductor no tiene entregas asignadas.</Text>
+                        <Text style={styles.text}>
+                            Este conductor no tiene entregas asignadas.
+                        </Text>
                     )}
                 </View>
 
@@ -186,19 +189,23 @@ export default function DriversScreen() {
                 <Text style={styles.formTitle}>
                     {form.id ? "Editar conductor" : "Nuevo conductor"}
                 </Text>
+
                 <TextInput
                     style={styles.input}
                     placeholder="Nombre"
                     value={form.firstName}
-                    onChangeText={(text) => setForm((f) => ({ ...f, firstName: text }))}
+                    onChangeText={(text) =>
+                        setForm((f) => ({ ...f, firstName: text }))
+                    }
                 />
                 <TextInput
                     style={styles.input}
                     placeholder="Apellido"
                     value={form.lastName}
-                    onChangeText={(text) => setForm((f) => ({ ...f, lastName: text }))}
+                    onChangeText={(text) =>
+                        setForm((f) => ({ ...f, lastName: text }))
+                    }
                 />
-
 
                 <TouchableOpacity
                     style={[styles.button, styles.saveButton]}
@@ -215,8 +222,8 @@ export default function DriversScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {flex: 1, padding: 12, backgroundColor: "#f5f5f5"},
-    header: {fontSize: 22, fontWeight: "bold", marginBottom: 8},
+    container: { flex: 1, padding: 12, backgroundColor: "#f5f5f5" },
+    header: { fontSize: 22, fontWeight: "bold", marginBottom: 8 },
     card: {
         backgroundColor: "#fff",
         borderRadius: 10,
@@ -224,18 +231,18 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         elevation: 2,
     },
-    title: {fontSize: 16, fontWeight: "bold"},
-    text: {fontSize: 14, color: "#555"},
-    row: {flexDirection: "row", marginTop: 8, justifyContent: "flex-end"},
+    title: { fontSize: 16, fontWeight: "bold" },
+    text: { fontSize: 14, color: "#555" },
+    row: { flexDirection: "row", marginTop: 8, justifyContent: "flex-end" },
     button: {
         paddingHorizontal: 10,
         paddingVertical: 6,
         borderRadius: 6,
         marginLeft: 8,
     },
-    editButton: {backgroundColor: "#2A4B9A"},
-    deleteButton: {backgroundColor: "#d9534f"},
-    buttonText: {color: "#fff", fontWeight: "bold"},
+    editButton: { backgroundColor: "#2A4B9A" },
+    deleteButton: { backgroundColor: "#d9534f" },
+    buttonText: { color: "#fff", fontWeight: "bold" },
     deliveriesContainer: {
         marginTop: 10,
     },
@@ -254,7 +261,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 16,
         elevation: 10,
     },
-    formTitle: {fontSize: 16, fontWeight: "bold", marginBottom: 8},
+    formTitle: { fontSize: 16, fontWeight: "bold", marginBottom: 8 },
     input: {
         backgroundColor: "#f9f9f9",
         borderRadius: 8,
@@ -263,6 +270,5 @@ const styles = StyleSheet.create({
         borderColor: "#ddd",
         marginBottom: 8,
     },
-    saveButton: {backgroundColor: "#28a745", marginTop: 4}
+    saveButton: { backgroundColor: "#28a745", marginTop: 4 },
 });
-

@@ -15,12 +15,14 @@ import {
     updateCustomer,
     deleteCustomer,
 } from "../api/customersApi";
-import { getOrdersByCustomer } from "../api/ordersApi";  // Suponiendo que tienes este endpoint
+import { getOrdersByCustomer } from "../api/ordersApi";
 
 export default function CustomersScreen() {
     const [customers, setCustomers] = useState([]);
-    const [orders, setOrders] = useState([]);
+    const [orders, setOrders] = useState([]); // lista de órdenes de todos los clientes
     const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+
     const [form, setForm] = useState({
         id: null,
         name: "",
@@ -28,13 +30,12 @@ export default function CustomersScreen() {
         address: "",
     });
 
-    const [saving, setSaving] = useState(false);
-
+    // 🔹 Cargar todos los customers
     const loadCustomers = async () => {
         try {
             setLoading(true);
             const res = await getAllCustomers();
-            setCustomers(res.data);
+            setCustomers(res.data); // CustomerResponse[]
         } catch (err) {
             console.error(err);
             Alert.alert("Error", "No se pudieron cargar los clientes");
@@ -43,13 +44,11 @@ export default function CustomersScreen() {
         }
     };
 
+    // 🔹 Cargar órdenes de un customer (GET /customers/{id}/orders)
     const loadOrdersForCustomer = async (customerId) => {
         try {
-            const res = await getOrdersByCustomer(customerId); // Llamada a la API para obtener órdenes
-            setOrders((prevOrders) => [
-                ...prevOrders,
-                ...res.data
-            ]);
+            const res = await getOrdersByCustomer(customerId);
+            setOrders((prev) => [...prev, ...res.data]); // acumulamos todas las órdenes
         } catch (err) {
             console.error("Error fetching orders:", err);
         }
@@ -59,7 +58,14 @@ export default function CustomersScreen() {
         loadCustomers();
     }, []);
 
+    // Cuando cambia la lista de customers, recargamos órdenes
     useEffect(() => {
+        if (!customers.length) {
+            setOrders([]);
+            return;
+        }
+        // limpiamos órdenes antes de recargar para evitar duplicados
+        setOrders([]);
         customers.forEach((customer) => {
             if (customer.id) {
                 loadOrdersForCustomer(customer.id);
@@ -101,21 +107,21 @@ export default function CustomersScreen() {
             return;
         }
 
+        const payload = {
+            name: form.name,
+            email: form.email,
+            address: form.address,
+        };
+
         try {
             setSaving(true);
+
             if (form.id) {
-                await updateCustomer(form.id, {
-                    name: form.name,
-                    email: form.email,
-                    address: form.address,
-                });
+                await updateCustomer(form.id, payload);
             } else {
-                await addCustomer({
-                    name: form.name,
-                    email: form.email,
-                    address: form.address,
-                });
+                await addCustomer(payload);
             }
+
             setForm({ id: null, name: "", email: "", address: "" });
             await loadCustomers();
         } catch (err) {
@@ -130,16 +136,23 @@ export default function CustomersScreen() {
         <View style={styles.card}>
             <Text style={styles.title}>{item.name}</Text>
             {item.email && <Text style={styles.text}>Email: {item.email}</Text>}
-            {item.address && <Text style={styles.text}>Dirección: {item.address}</Text>}
+            {item.address && (
+                <Text style={styles.text}>Dirección: {item.address}</Text>
+            )}
 
-            {/* Relación Orders */}
+            {/* 🔹 Órdenes asociadas */}
             <View style={styles.ordersContainer}>
                 <Text style={styles.ordersTitle}>Órdenes asociadas:</Text>
-                {orders.filter((order) => order.customerId === item.id).map((order) => (
-                    <Text key={order.id} style={styles.text}>
-                        Orden #{order.id} - {order.details}
-                    </Text>
-                ))}
+                {orders
+                    .filter((order) => order.customerId === item.id)
+                    .map((order) => (
+                        <Text key={order.id} style={styles.text}>
+                            Orden #{order.id} - {order.details}
+                        </Text>
+                    ))}
+                {orders.filter((o) => o.customerId === item.id).length === 0 && (
+                    <Text style={styles.text}>Sin órdenes registradas.</Text>
+                )}
             </View>
 
             <View style={styles.row}>
@@ -174,8 +187,8 @@ export default function CustomersScreen() {
                 />
             )}
 
-            {/* Formulario crear/editar */}
-            <View style={styles.formContainer}>
+            {/* 🔹 Formulario crear/editar */}
+            <View className="formContainer" style={styles.formContainer}>
                 <Text style={styles.formTitle}>
                     {form.id ? "Editar cliente" : "Nuevo cliente"}
                 </Text>
@@ -183,20 +196,26 @@ export default function CustomersScreen() {
                     style={styles.input}
                     placeholder="Nombre"
                     value={form.name}
-                    onChangeText={(text) => setForm((f) => ({ ...f, name: text }))}
+                    onChangeText={(text) =>
+                        setForm((f) => ({ ...f, name: text }))
+                    }
                 />
                 <TextInput
                     style={styles.input}
                     placeholder="Email"
                     value={form.email}
                     autoCapitalize="none"
-                    onChangeText={(text) => setForm((f) => ({ ...f, email: text }))}
+                    onChangeText={(text) =>
+                        setForm((f) => ({ ...f, email: text }))
+                    }
                 />
                 <TextInput
                     style={styles.input}
                     placeholder="Dirección"
                     value={form.address}
-                    onChangeText={(text) => setForm((f) => ({ ...f, address: text }))}
+                    onChangeText={(text) =>
+                        setForm((f) => ({ ...f, address: text }))
+                    }
                 />
                 <TouchableOpacity
                     style={[styles.button, styles.saveButton]}
@@ -204,10 +223,66 @@ export default function CustomersScreen() {
                     disabled={saving}
                 >
                     <Text style={styles.buttonText}>
-                        {saving ? "Guardando..." : form.id ? "Actualizar" : "Crear"}
+                        {saving
+                            ? "Guardando..."
+                            : form.id
+                                ? "Actualizar"
+                                : "Crear"}
                     </Text>
                 </TouchableOpacity>
             </View>
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: { flex: 1, padding: 12, backgroundColor: "#f5f5f5" },
+    header: { fontSize: 22, fontWeight: "bold", marginBottom: 8 },
+    card: {
+        backgroundColor: "#fff",
+        borderRadius: 10,
+        padding: 12,
+        marginBottom: 8,
+        elevation: 2,
+    },
+    title: { fontSize: 16, fontWeight: "bold" },
+    text: { fontSize: 14, color: "#555" },
+    row: { flexDirection: "row", marginTop: 8, justifyContent: "flex-end" },
+    button: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 6,
+        marginLeft: 8,
+    },
+    editButton: { backgroundColor: "#2A4B9A" },
+    deleteButton: { backgroundColor: "#d9534f" },
+    buttonText: { color: "#fff", fontWeight: "bold" },
+    ordersContainer: {
+        marginTop: 10,
+    },
+    ordersTitle: {
+        fontWeight: "bold",
+        marginBottom: 4,
+    },
+    formContainer: {
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "#fff",
+        padding: 12,
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        elevation: 10,
+    },
+    formTitle: { fontSize: 16, fontWeight: "bold", marginBottom: 8 },
+    input: {
+        backgroundColor: "#f9f9f9",
+        borderRadius: 8,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: "#ddd",
+        marginBottom: 8,
+    },
+    saveButton: { backgroundColor: "#28a745", marginTop: 4 },
+});

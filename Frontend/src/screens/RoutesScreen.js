@@ -15,15 +15,16 @@ import {
     updateRoute,
     deleteRoute,
 } from "../api/routesApi";
-import { getDeliveriesByRoute } from "../api/deliveriesApi";  // API para obtener entregas por ruta
-import { getDriverById } from "../api/driversApi";  // API para obtener información del conductor
+import { getDeliveriesByRoute } from "../api/deliveriesApi";
+import { getDriverById } from "../api/driversApi";
 
 export default function RoutesScreen() {
     const [routes, setRoutes] = useState([]);
-    const [deliveries, setDeliveries] = useState([]);
-    const [drivers, setDrivers] = useState([]);
+    const [deliveriesByRoute, setDeliveriesByRoute] = useState({});
+    const [drivers, setDrivers] = useState({});
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+
     const [form, setForm] = useState({
         id: null,
         name: "",
@@ -31,34 +32,55 @@ export default function RoutesScreen() {
         destination: "",
     });
 
+    // ---------------------------------------------------------
+    // LOAD ROUTES
+    // ---------------------------------------------------------
     const loadRoutes = async () => {
         try {
             setLoading(true);
             const res = await getAllRoutes();
             setRoutes(res.data);
         } catch (err) {
-            console.error(err);
             Alert.alert("Error", "No se pudieron cargar las rutas");
         } finally {
             setLoading(false);
         }
     };
 
+    // ---------------------------------------------------------
+    // LOAD DELIVERIES FOR EACH ROUTE
+    // ---------------------------------------------------------
     const loadDeliveriesForRoute = async (routeId) => {
         try {
-            const res = await getDeliveriesByRoute(routeId); // Llamada a la API para obtener las entregas
-            setDeliveries((prevDeliveries) => [...prevDeliveries, ...res.data]);
+            const res = await getDeliveriesByRoute(routeId);
+            setDeliveriesByRoute((prev) => ({
+                ...prev,
+                [routeId]: res.data,
+            }));
+
+            // Load drivers for these deliveries
+            res.data.forEach((delivery) => {
+                if (delivery.driverId) loadDriver(delivery.driverId);
+            });
         } catch (err) {
-            console.error("Error fetching deliveries:", err);
+            console.error("Error loading deliveries:", err);
         }
     };
 
-    const loadDriverForDelivery = async (driverId) => {
+    // ---------------------------------------------------------
+    // LOAD DRIVER BY ID
+    // ---------------------------------------------------------
+    const loadDriver = async (driverId) => {
+        if (drivers[driverId]) return; // avoid duplicates
+
         try {
-            const res = await getDriverById(driverId); // Obtener el conductor relacionado
-            setDrivers((prevDrivers) => [...prevDrivers, res.data]);
+            const res = await getDriverById(driverId);
+            setDrivers((prev) => ({
+                ...prev,
+                [driverId]: res.data,
+            }));
         } catch (err) {
-            console.error("Error fetching driver:", err);
+            console.error("Error loading driver:", err);
         }
     };
 
@@ -67,21 +89,12 @@ export default function RoutesScreen() {
     }, []);
 
     useEffect(() => {
-        routes.forEach((route) => {
-            if (route.id) {
-                loadDeliveriesForRoute(route.id); // Cargar entregas para cada ruta
-            }
-        });
+        routes.forEach((route) => loadDeliveriesForRoute(route.id));
     }, [routes]);
 
-    useEffect(() => {
-        deliveries.forEach((delivery) => {
-            if (delivery.driverId) {
-                loadDriverForDelivery(delivery.driverId); // Cargar conductor para cada entrega
-            }
-        });
-    }, [deliveries]);
-
+    // ---------------------------------------------------------
+    // FORM HANDLING
+    // ---------------------------------------------------------
     const handleEdit = (route) => {
         setForm({
             id: route.id,
@@ -102,7 +115,6 @@ export default function RoutesScreen() {
                         await deleteRoute(id);
                         await loadRoutes();
                     } catch (err) {
-                        console.error(err);
                         Alert.alert("Error", "No se pudo eliminar la ruta");
                     }
                 },
@@ -116,14 +128,14 @@ export default function RoutesScreen() {
             return;
         }
 
+        const payload = {
+            name: form.name,
+            origin: form.origin,
+            destination: form.destination,
+        };
+
         try {
             setSaving(true);
-            const payload = {
-                name: form.name,
-                origin: form.origin,
-                destination: form.destination,
-            };
-
             if (form.id) {
                 await updateRoute(form.id, payload);
             } else {
@@ -133,49 +145,63 @@ export default function RoutesScreen() {
             setForm({ id: null, name: "", origin: "", destination: "" });
             await loadRoutes();
         } catch (err) {
-            console.error(err);
             Alert.alert("Error", "No se pudo guardar la ruta");
         } finally {
             setSaving(false);
         }
     };
 
-    const renderItem = ({ item }) => (
-        <View style={styles.card}>
-            <Text style={styles.title}>{item.name}</Text>
-            <Text style={styles.text}>Origen: {item.origin}</Text>
-            <Text style={styles.text}>Destino: {item.destination}</Text>
+    // ---------------------------------------------------------
+    // RENDER ROUTE ITEM
+    // ---------------------------------------------------------
+    const renderItem = ({ item }) => {
+        const deliveries = deliveriesByRoute[item.id] || [];
 
-            {/* Mostrar las entregas relacionadas con esta ruta */}
-            <View style={styles.deliveriesContainer}>
-                <Text style={styles.deliveriesTitle}>Entregas asociadas:</Text>
-                {deliveries
-                    .filter((delivery) => delivery.routeId === item.id)
-                    .map((delivery) => (
-                        <Text key={delivery.id} style={styles.text}>
-                            Entrega #{delivery.id} - {delivery.status} (Conductor:{" "}
-                            {drivers.find((driver) => driver.id === delivery.driverId)?.name ||
-                                "Desconocido"})
-                        </Text>
-                    ))}
-            </View>
+        return (
+            <View style={styles.card}>
+                <Text style={styles.title}>{item.name}</Text>
+                <Text style={styles.text}>Origen: {item.origin}</Text>
+                <Text style={styles.text}>Destino: {item.destination}</Text>
 
-            <View style={styles.row}>
-                <TouchableOpacity
-                    style={[styles.button, styles.editButton]}
-                    onPress={() => handleEdit(item)}
-                >
-                    <Text style={styles.buttonText}>Editar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.button, styles.deleteButton]}
-                    onPress={() => handleDelete(item.id)}
-                >
-                    <Text style={styles.buttonText}>Eliminar</Text>
-                </TouchableOpacity>
+                {/* LISTA DE ENTREGAS */}
+                <View style={styles.deliveriesContainer}>
+                    <Text style={styles.deliveriesTitle}>Entregas asociadas:</Text>
+
+                    {deliveries.length === 0 ? (
+                        <Text style={styles.text}>No hay entregas en esta ruta.</Text>
+                    ) : (
+                        deliveries.map((delivery) => {
+                            const driver = drivers[delivery.driverId];
+                            return (
+                                <Text key={delivery.id} style={styles.text}>
+                                    Entrega #{delivery.id} - {delivery.status} | Conductor:{" "}
+                                    {driver
+                                        ? `${driver.firstName} ${driver.lastName}`
+                                        : "Cargando..."}
+                                </Text>
+                            );
+                        })
+                    )}
+                </View>
+
+                <View style={styles.row}>
+                    <TouchableOpacity
+                        style={[styles.button, styles.editButton]}
+                        onPress={() => handleEdit(item)}
+                    >
+                        <Text style={styles.buttonText}>Editar</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.button, styles.deleteButton]}
+                        onPress={() => handleDelete(item.id)}
+                    >
+                        <Text style={styles.buttonText}>Eliminar</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
-        </View>
-    );
+        );
+    };
 
     return (
         <View style={styles.container}>
@@ -192,10 +218,12 @@ export default function RoutesScreen() {
                 />
             )}
 
+            {/* FORMULARIO */}
             <View style={styles.formContainer}>
                 <Text style={styles.formTitle}>
                     {form.id ? "Editar ruta" : "Nueva ruta"}
                 </Text>
+
                 <TextInput
                     style={styles.input}
                     placeholder="Nombre"
@@ -216,6 +244,7 @@ export default function RoutesScreen() {
                         setForm((f) => ({ ...f, destination: text }))
                     }
                 />
+
                 <TouchableOpacity
                     style={[styles.button, styles.saveButton]}
                     onPress={handleSubmit}
@@ -230,6 +259,9 @@ export default function RoutesScreen() {
     );
 }
 
+// ---------------------------------------------------------
+// STYLES
+// ---------------------------------------------------------
 const styles = StyleSheet.create({
     container: { flex: 1, padding: 12, backgroundColor: "#f5f5f5" },
     header: { fontSize: 22, fontWeight: "bold", marginBottom: 8 },
@@ -273,11 +305,6 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     saveButton: { backgroundColor: "#28a745", marginTop: 4 },
-    deliveriesContainer: {
-        marginTop: 10,
-    },
-    deliveriesTitle: {
-        fontWeight: "bold",
-        marginBottom: 6,
-    },
+    deliveriesContainer: { marginTop: 10 },
+    deliveriesTitle: { fontWeight: "bold", marginBottom: 6 },
 });

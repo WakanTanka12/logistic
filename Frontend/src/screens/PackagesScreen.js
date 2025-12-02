@@ -11,9 +11,9 @@ import {
 } from "react-native";
 import {
     getAllPackages,
-    createPackage,
     updatePackage,
     deletePackage,
+    createPackageForOrder, // 👈 usar esta para crear
 } from "../api/packagesApi";
 
 export default function PackagesScreen() {
@@ -26,6 +26,7 @@ export default function PackagesScreen() {
         width: "",
         height: "",
         weight: "",
+        orderId: "",   // 👈 ahora también manejamos orderId
     });
 
     const loadPackages = async () => {
@@ -52,6 +53,7 @@ export default function PackagesScreen() {
             width: String(pkg.width ?? ""),
             height: String(pkg.height ?? ""),
             weight: String(pkg.weight ?? ""),
+            orderId: pkg.orderId ? String(pkg.orderId) : "", // 👈 si el backend manda orderId
         });
     };
 
@@ -76,7 +78,13 @@ export default function PackagesScreen() {
 
     const handleSubmit = async () => {
         if (!form.length || !form.width || !form.height || !form.weight) {
-            Alert.alert("Error", "Todos los campos son obligatorios");
+            Alert.alert("Error", "Todos los campos de dimensiones y peso son obligatorios");
+            return;
+        }
+
+        // Para crear, también exigimos orderId
+        if (!form.id && !form.orderId) {
+            Alert.alert("Error", "Debes especificar un Order ID para crear un paquete");
             return;
         }
 
@@ -85,16 +93,24 @@ export default function PackagesScreen() {
             width: parseFloat(form.width),
             height: parseFloat(form.height),
             weight: parseFloat(form.weight),
-            // ⚠️ Si tu API exige orderId aquí, deberías agregarlo:
-            // orderId: X
+            // OJO: en el backend el orderId se usa solo en la ruta POST /orders/{orderId}/packages
+            // En update no lo necesitamos aquí.
         };
 
         try {
             setSaving(true);
             if (form.id) {
+                // actualizar paquete existente
                 await updatePackage(form.id, payload);
             } else {
-                await createPackage(payload);
+                // crear paquete para una orden específica
+                const orderIdNumber = Number(form.orderId);
+                if (Number.isNaN(orderIdNumber)) {
+                    Alert.alert("Error", "Order ID debe ser un número válido");
+                    setSaving(false);
+                    return;
+                }
+                await createPackageForOrder(orderIdNumber, payload);
             }
 
             setForm({
@@ -103,6 +119,7 @@ export default function PackagesScreen() {
                 width: "",
                 height: "",
                 weight: "",
+                orderId: "",
             });
 
             await loadPackages();
@@ -126,7 +143,6 @@ export default function PackagesScreen() {
                 <Text style={styles.text}>Peso: {item.weight} kg</Text>
             )}
 
-            {/* Si quieres mostrar orderId */}
             {item.orderId && (
                 <Text style={styles.text}>Order ID: {item.orderId}</Text>
             )}
@@ -162,7 +178,7 @@ export default function PackagesScreen() {
                 />
             )}
 
-            <View className="formContainer" style={styles.formContainer}>
+            <View style={styles.formContainer}>
                 <Text style={styles.formTitle}>
                     {form.id ? "Editar paquete" : "Nuevo paquete"}
                 </Text>
@@ -202,6 +218,18 @@ export default function PackagesScreen() {
                         setForm((f) => ({ ...f, weight: text }))
                     }
                 />
+
+                {/* Solo obligatorio para crear, no para editar */}
+                <TextInput
+                    style={styles.input}
+                    placeholder="Order ID (solo para crear)"
+                    value={form.orderId}
+                    keyboardType="numeric"
+                    onChangeText={(text) =>
+                        setForm((f) => ({ ...f, orderId: text }))
+                    }
+                />
+
                 <TouchableOpacity
                     style={[styles.button, styles.saveButton]}
                     onPress={handleSubmit}
