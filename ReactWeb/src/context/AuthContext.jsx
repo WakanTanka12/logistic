@@ -1,59 +1,86 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
+// src/context/AuthContext.jsx
+import React, { createContext, useContext, useEffect, useState } from "react";
 
-/**
- * AuthContext — Controla la autenticación global del sistema.
- * Compatible con Vite y listo para integrar JWT.
- */
 
-const AuthContext = createContext(undefined);
+const AuthContext = createContext(null);
 
-function AuthProvider({ children }) {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [user, setUser] = useState(null);
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(null);             // datos del usuario
+    const [token, setToken] = useState(
+        localStorage.getItem("token") || null
+    );
+    const [loading, setLoading] = useState(true);
 
-    // 🔹 Verificar token en localStorage al iniciar la app
+    // 🟢 Al montar la app, intento restaurar la sesión
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            setIsAuthenticated(true);
-            setUser({ username: "demoUser" }); // Placeholder temporal
-        }
+        const init = async () => {
+            try {
+                const storedToken = localStorage.getItem("token");
+                const storedUser = localStorage.getItem("user");
+
+                if (!storedToken) {
+                    setLoading(false);
+                    return;
+                }
+
+                setToken(storedToken);
+
+                if (storedUser) {
+                    // ya tengo usuario guardado
+                    setUser(JSON.parse(storedUser));
+                    setLoading(false);
+                    return;
+                }
+
+                // (opcional) si tienes /auth/me, podrías llamar aquí
+                // const res = await api.get("/auth/me");
+                // setUser(res.data);
+                // localStorage.setItem("user", JSON.stringify(res.data));
+
+                setLoading(false);
+            } catch (err) {
+                console.warn("Sesión inválida, limpiando...", err);
+                logout(false);
+            }
+        };
+
+        init();
     }, []);
 
-    // 🔐 Simulación de inicio de sesión (reemplazar con API JWT)
-    const login = async (username, password) => {
-        if (username === "admin" && password === "admin") {
-            const fakeToken = "demo-token-12345";
-            localStorage.setItem("token", fakeToken);
-            setIsAuthenticated(true);
-            setUser({ username });
-            return true;
+    // 🟢 Login: guardar token y usuario
+    const login = (newToken, userData) => {
+        setToken(newToken);
+        setUser(userData);
+
+        localStorage.setItem("token", newToken);
+        if (userData) {
+            localStorage.setItem("user", JSON.stringify(userData));
         }
-        return false;
     };
 
-    // 🚪 Cerrar sesión
-    const logout = () => {
+    // 🔴 Logout: limpiar todo
+    const logout = (redirect = true) => {
         localStorage.removeItem("token");
-        setIsAuthenticated(false);
+        localStorage.removeItem("user");
+        setToken(null);
         setUser(null);
+        if (redirect) {
+            window.location.href = "/login";
+        }
     };
 
-    // 🧠 useMemo previene recrear funciones innecesariamente
-    const value = useMemo(
-        () => ({ isAuthenticated, user, login, logout }),
-        [isAuthenticated, user]
+    const value = {
+        user,
+        token,
+        loading,
+        isAuthenticated: !!token && !!user,
+        login,
+        logout,
+    };
+
+    return (
+        <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     );
+};
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-function useAuth() {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    return context;
-}
-
-export { AuthProvider, useAuth };
+export const useAuth = () => useContext(AuthContext);
