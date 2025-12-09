@@ -18,15 +18,20 @@ api.interceptors.request.use(async (config) => {
 });
 
 // Manejar tokens expirados
-api.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-        if (error.response?.status === 401) {
-            Alert.alert("Sesión expirada", "Inicia sesión nuevamente.");
-            await AsyncStorage.multiRemove(["token", "user"]);
-        }
-        return Promise.reject(error);
+api.interceptors.request.use(async (config) => {
+    const token = await AsyncStorage.getItem("token");
+
+    // NO adjuntar token en login/register
+    if (
+        token &&
+        !config.url?.startsWith("/auth/login") &&
+        !config.url?.startsWith("/auth/register")
+    ) {
+        config.headers.Authorization = `Bearer ${token}`;
     }
-);
+
+    return config;
+});
+
 
 export default api;

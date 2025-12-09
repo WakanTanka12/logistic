@@ -103,9 +103,10 @@ public class JwtService {
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000)) // 10 horas
-                .signWith(getSignInKey(), SignatureAlgorithm.HS512)
+                .setExpiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000)) // 24 horas
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)   // ✅ HS256
                 .compact();
+
     }
 
     // ✅ Valida token

@@ -1,5 +1,5 @@
 // src/screens/HomeScreen.js
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
     View,
     Text,
@@ -9,56 +9,63 @@ import {
     RefreshControl,
 } from "react-native";
 import { useAuth } from "../hooks/useAuth";
-import { useDeliveries } from "../hooks/useDeliveries";
+import { getDeliveriesByDriver } from "../api/deliveriesApi"; // 👈 tu API real
 import OrderCard from "../components/OrderCard";
 
 const HomeScreen = ({ navigation }) => {
     const { user, logout } = useAuth();
-    const { deliveries, loading, loadDeliveriesForDriver } = useDeliveries();
 
-    useEffect(() => {
-        if (user?.userId) {
-            loadDeliveriesForDriver(user.userId);
+    const [deliveries, setDeliveries] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    const loadDeliveries = async () => {
+        if (!user?.userId) return;
+
+        try {
+            setLoading(true);
+            const data = await getDeliveriesByDriver(user.userId);
+            setDeliveries(data || []);
+        } catch (error) {
+            console.log("Error loading deliveries:", error);
+        } finally {
+            setLoading(false);
         }
-    }, [user]);
-
-    const onRefresh = () => {
-        if (user?.userId) loadDeliveriesForDriver(user.userId);
     };
 
-    const displayName =
-        user ? `${user.firstname ?? ""} ${user.lastname ?? ""}`.trim() : "Driver";
+    useEffect(() => {
+        loadDeliveries();
+    }, [user]);
 
     return (
         <View style={styles.container}>
             <View style={styles.topBar}>
                 <View>
-                    <Text style={styles.welcome}>Hola, {displayName || "Driver"}</Text>
+                    <Text style={styles.welcome}>
+                        Hola, {user?.firstname || "Driver"}
+                    </Text>
                     <Text style={styles.subtitle}>Tus entregas de hoy</Text>
                 </View>
+
                 <TouchableOpacity onPress={() => navigation.navigate("Usuario")}>
                     <Text style={styles.link}>Perfil</Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity onPress={logout}>
-                    <Text style={[styles.link, { color: "#d9534f" }]}>Salir</Text>
+                    <Text style={[styles.link, { color: "#D9534F" }]}>Salir</Text>
                 </TouchableOpacity>
             </View>
 
             <FlatList
                 data={deliveries}
-                keyExtractor={(item) => String(item.id)}
+                keyExtractor={(item) => String(item.id || item.deliveryId)}
                 renderItem={({ item }) => (
                     <OrderCard
                         order={item}
-                        onPress={() =>
-                            console.log("Ir al detalle de orden", item.id)
-                            // navigation.navigate("OrderDetail", { id: item.id })
-                        }
+                        onPress={() => console.log("Detalle de entrega", item.id)}
                     />
                 )}
-                contentContainerStyle={{ paddingVertical: 8 }}
                 refreshControl={
-                    <RefreshControl refreshing={loading} onRefresh={onRefresh} />
+                    <RefreshControl refreshing={loading} onRefresh={loadDeliveries} />
                 }
                 ListEmptyComponent={
                     !loading && (
@@ -81,11 +88,7 @@ const styles = StyleSheet.create({
     welcome: { fontSize: 18, fontWeight: "bold" },
     subtitle: { fontSize: 14, color: "#555" },
     link: { marginLeft: 12, color: "#2A4B9A", fontWeight: "600" },
-    empty: {
-        textAlign: "center",
-        marginTop: 32,
-        color: "#777",
-    },
+    empty: { textAlign: "center", marginTop: 32, color: "#777" },
 });
 
 export default HomeScreen;

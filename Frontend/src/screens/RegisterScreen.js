@@ -45,11 +45,14 @@ const RegisterScreen = ({ navigation }) => {
                 `Bienvenido ${data.firstname || form.firstname} ${data.lastname || form.lastname}`
             );
         } catch (err) {
-            console.error(err.response?.data || err);
+            console.log("STATUS:", err.response?.status);
+            console.log("DATA:", err.response?.data);
+            console.log("HEADERS:", err.response?.headers);
             Alert.alert("Error", "No se pudo completar el registro.");
         } finally {
             setLoading(false);
         }
+
     };
 
     return (
