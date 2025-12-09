@@ -1,3 +1,4 @@
+// src/screens/DriversScreen.js
 import React, { useEffect, useState } from "react";
 import {
     View,
@@ -15,11 +16,13 @@ import {
     updateDriver,
     createDriver,
 } from "../api/driversApi";
-import { getDeliveriesByDriver } from "../api/deliveriesApi"; // Para obtener entregas por conductor
+import { getDeliveriesByDriver } from "../api/deliveriesApi";
+import { Picker } from "@react-native-picker/picker";
 
 export default function DriversScreen() {
     const [drivers, setDrivers] = useState([]);
     const [deliveries, setDeliveries] = useState({}); // { [driverId]: DeliveryResponse[] }
+    const [selectedDeliveryByDriver, setSelectedDeliveryByDriver] = useState({});
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
 
@@ -60,8 +63,8 @@ export default function DriversScreen() {
         loadDrivers();
     }, []);
 
+    // Cuando cambian los conductores, cargamos sus entregas
     useEffect(() => {
-        // Cargar entregas para cada conductor una vez que los conductores estén cargados
         drivers.forEach((driver) => {
             if (driver.id) {
                 loadDeliveriesForDriver(driver.id);
@@ -128,6 +131,10 @@ export default function DriversScreen() {
 
     const renderItem = ({ item }) => {
         const driverDeliveries = deliveries[item.id] || [];
+        const selectedDeliveryId = selectedDeliveryByDriver[item.id] ?? null;
+
+        const selectedDelivery =
+            driverDeliveries.find((d) => d.id === selectedDeliveryId) || null;
 
         return (
             <View style={styles.card}>
@@ -138,16 +145,44 @@ export default function DriversScreen() {
                 {/* Relación con las entregas */}
                 <View style={styles.deliveriesContainer}>
                     <Text style={styles.deliveriesTitle}>Entregas realizadas:</Text>
-                    {driverDeliveries.length > 0 ? (
-                        driverDeliveries.map((delivery) => (
-                            <Text key={delivery.id} style={styles.text}>
-                                Entrega #{delivery.id} - Estado: {delivery.status}
-                            </Text>
-                        ))
-                    ) : (
+
+                    {driverDeliveries.length === 0 ? (
                         <Text style={styles.text}>
                             Este conductor no tiene entregas asignadas.
                         </Text>
+                    ) : (
+                        <>
+                            {/* 🔽 Picker de entregas de este driver */}
+                            <Picker
+                                selectedValue={selectedDeliveryId}
+                                onValueChange={(value) =>
+                                    setSelectedDeliveryByDriver((prev) => ({
+                                        ...prev,
+                                        [item.id]: value,
+                                    }))
+                                }
+                            >
+                                <Picker.Item
+                                    label="Selecciona una entrega..."
+                                    value={null}
+                                />
+                                {driverDeliveries.map((delivery) => (
+                                    <Picker.Item
+                                        key={delivery.id}
+                                        label={`Entrega #${delivery.id} - ${delivery.status}`}
+                                        value={delivery.id}
+                                    />
+                                ))}
+                            </Picker>
+
+                            {/* Info opcional de la entrega seleccionada */}
+                            {selectedDelivery && (
+                                <Text style={styles.text}>
+                                    Entrega seleccionada: #{selectedDelivery.id} —{" "}
+                                    {selectedDelivery.status}
+                                </Text>
+                            )}
+                        </>
                     )}
                 </View>
 

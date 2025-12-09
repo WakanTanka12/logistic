@@ -1,3 +1,4 @@
+// src/screens/OrdersScreen.js
 import React, { useEffect, useState } from "react";
 import {
     View,
@@ -9,7 +10,13 @@ import {
     ActivityIndicator,
     Alert,
 } from "react-native";
-import { getAllOrders, createOrder, updateOrder, deleteOrder } from "../api/ordersApi";
+import { Picker } from "@react-native-picker/picker";
+import {
+    getAllOrders,
+    createOrder,
+    updateOrder,
+    deleteOrder,
+} from "../api/ordersApi";
 import { getAllCustomers } from "../api/customersApi";
 
 export default function OrdersScreen() {
@@ -23,7 +30,7 @@ export default function OrdersScreen() {
         orderDate: "",
         price: "",
         details: "",
-        customerId: "",
+        customerId: "", // lo guardamos como string para el Picker
     });
 
     // 🔹 Cargar todas las órdenes
@@ -44,12 +51,14 @@ export default function OrdersScreen() {
     const loadCustomers = async () => {
         try {
             const res = await getAllCustomers();
-            setCustomers(res.data); // List<CustomerResponse> con firstName / lastName
+            console.log("Clientes:", res.data); // 👈 revisa en consola qué campos trae
+            setCustomers(res.data); // List<CustomerResponse>
         } catch (err) {
             console.error("Error cargando clientes:", err);
         }
     };
 
+    // Primera carga al montar
     useEffect(() => {
         loadOrders();
         loadCustomers();
@@ -62,8 +71,8 @@ export default function OrdersScreen() {
             orderDate: order.orderDate || "",
             price: order.price != null ? String(order.price) : "",
             details: order.details || "",
-            // AHORA usando customerId directo del OrderResponse
-            customerId: order.customerId != null ? String(order.customerId) : "",
+            customerId:
+                order.customerId != null ? String(order.customerId) : "",
         });
     };
 
@@ -86,25 +95,29 @@ export default function OrdersScreen() {
             },
         ]);
     };
+    const normalizeDate = (str) => {
+        if (!str) return "";
+        // reemplaza / por -
+        return str.replace(/\//g, "-");
+    };
 
     // 🔹 Guardar nueva o actualizar orden
     const handleSubmit = async () => {
         if (!form.customerId) {
-            Alert.alert("Error", "Selecciona un cliente (customerId)");
+            Alert.alert("Error", "Selecciona un cliente");
             return;
         }
 
         const priceNumber = form.price ? Number(form.price) : 0;
 
         const payload = {
-            // Si no llenan fecha, mandamos hoy en formato YYYY-MM-DD
-            orderDate: form.orderDate || new Date().toISOString().slice(0, 10),
+            // si no ponen fecha, usamos hoy. Si ponen con /, la normalizamos.
+            orderDate: normalizeDate(form.orderDate) || new Date().toISOString().slice(0, 10),
             price: priceNumber,
             details: form.details || "",
             customerId: Number(form.customerId),
-            // Si tu backend tiene packageIds opcional, podrías mandar []
-            // packageIds: []
         };
+
 
         try {
             setSaving(true);
@@ -134,7 +147,12 @@ export default function OrdersScreen() {
     // 🔹 Obtener el nombre del cliente basado en el `customerId`
     const getCustomerName = (customerId) => {
         const c = customers.find((x) => x.id === customerId);
-        return c ? `${c.firstName} ${c.lastName}` : "N/D";
+        if (!c) return "N/D";
+
+        // si tu backend usa `name`, úsalo; si usa firstName/lastName, armamos el nombre
+        if (c.name) return c.name;
+        const full = `${c.firstName ?? ""} ${c.lastName ?? ""}`.trim();
+        return full || `Cliente #${c.id}`;
     };
 
     // 🔹 Renderizar cada orden
@@ -144,7 +162,9 @@ export default function OrdersScreen() {
             <Text style={styles.text}>Fecha: {item.orderDate}</Text>
             <Text style={styles.text}>Precio: ${item.price}</Text>
             <Text style={styles.text}>Detalles: {item.details}</Text>
-            <Text style={styles.text}>Cliente: {getCustomerName(item.customerId)}</Text>
+            <Text style={styles.text}>
+                Cliente: {getCustomerName(item.customerId)}
+            </Text>
 
             <View style={styles.row}>
                 <TouchableOpacity
@@ -188,7 +208,9 @@ export default function OrdersScreen() {
                     style={styles.input}
                     placeholder="Fecha de la orden (YYYY-MM-DD)"
                     value={form.orderDate}
-                    onChangeText={(text) => setForm((f) => ({ ...f, orderDate: text }))}
+                    onChangeText={(text) =>
+                        setForm((f) => ({ ...f, orderDate: text }))
+                    }
                 />
 
                 <TextInput
@@ -196,25 +218,52 @@ export default function OrdersScreen() {
                     placeholder="Precio"
                     value={form.price}
                     keyboardType="numeric"
-                    onChangeText={(text) => setForm((f) => ({ ...f, price: text }))}
+                    onChangeText={(text) =>
+                        setForm((f) => ({ ...f, price: text }))
+                    }
                 />
 
                 <TextInput
                     style={styles.input}
                     placeholder="Detalles"
                     value={form.details}
-                    onChangeText={(text) => setForm((f) => ({ ...f, details: text }))}
-                />
-
-                <TextInput
-                    style={styles.input}
-                    placeholder="Customer ID"
-                    value={form.customerId}
-                    keyboardType="numeric"
                     onChangeText={(text) =>
-                        setForm((f) => ({ ...f, customerId: text }))
+                        setForm((f) => ({ ...f, details: text }))
                     }
                 />
+
+                {/* 🔽 Picker para seleccionar cliente */}
+                <Text style={{ marginBottom: 4, fontWeight: "600" }}>
+                    Cliente
+                </Text>
+                <View style={styles.pickerWrapper}>
+                    <Picker
+                        selectedValue={form.customerId || ""}
+                        onValueChange={(value) =>
+                            setForm((f) => ({ ...f, customerId: value }))
+                        }
+                    >
+                        <Picker.Item
+                            label="Selecciona un cliente..."
+                            value=""
+                        />
+                        {customers.map((c) => {
+                            const label =
+                                c.name ||
+                                `${c.firstName ?? ""} ${
+                                    c.lastName ?? ""
+                                }`.trim() ||
+                                `Cliente #${c.id}`;
+                            return (
+                                <Picker.Item
+                                    key={c.id}
+                                    label={label}
+                                    value={String(c.id)}
+                                />
+                            );
+                        })}
+                    </Picker>
+                </View>
 
                 <TouchableOpacity
                     style={[styles.button, styles.saveButton]}
@@ -222,7 +271,11 @@ export default function OrdersScreen() {
                     disabled={saving}
                 >
                     <Text style={styles.buttonText}>
-                        {saving ? "Guardando..." : form.id ? "Actualizar" : "Crear"}
+                        {saving
+                            ? "Guardando..."
+                            : form.id
+                                ? "Actualizar"
+                                : "Crear"}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -273,4 +326,11 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     saveButton: { backgroundColor: "#28a745", marginTop: 4 },
+    pickerWrapper: {
+        backgroundColor: "#f9f9f9",
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "#ddd",
+        marginBottom: 8,
+    },
 });

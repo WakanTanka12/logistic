@@ -1,3 +1,4 @@
+// src/screens/PackagesScreen.js
 import React, { useEffect, useState } from "react";
 import {
     View,
@@ -9,24 +10,29 @@ import {
     ActivityIndicator,
     Alert,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
+
 import {
     getAllPackages,
     updatePackage,
     deletePackage,
-    createPackageForOrder, // 👈 usar esta para crear
+    createPackageForOrder,
 } from "../api/packagesApi";
+import { getAllOrders } from "../api/ordersApi"; // 👈 para listar órdenes
 
 export default function PackagesScreen() {
     const [packages, setPackages] = useState([]);
+    const [orders, setOrders] = useState([]); // 👈 lista de órdenes para el Picker
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+
     const [form, setForm] = useState({
         id: null,
         length: "",
         width: "",
         height: "",
         weight: "",
-        orderId: "",   // 👈 ahora también manejamos orderId
+        orderId: "", // se maneja como string para el Picker
     });
 
     const loadPackages = async () => {
@@ -42,8 +48,18 @@ export default function PackagesScreen() {
         }
     };
 
+    const loadOrders = async () => {
+        try {
+            const res = await getAllOrders();
+            setOrders(res.data);
+        } catch (err) {
+            console.error("Error cargando órdenes:", err);
+        }
+    };
+
     useEffect(() => {
         loadPackages();
+        loadOrders();
     }, []);
 
     const handleEdit = (pkg) => {
@@ -53,7 +69,7 @@ export default function PackagesScreen() {
             width: String(pkg.width ?? ""),
             height: String(pkg.height ?? ""),
             weight: String(pkg.weight ?? ""),
-            orderId: pkg.orderId ? String(pkg.orderId) : "", // 👈 si el backend manda orderId
+            orderId: pkg.orderId ? String(pkg.orderId) : "",
         });
     };
 
@@ -78,13 +94,16 @@ export default function PackagesScreen() {
 
     const handleSubmit = async () => {
         if (!form.length || !form.width || !form.height || !form.weight) {
-            Alert.alert("Error", "Todos los campos de dimensiones y peso son obligatorios");
+            Alert.alert(
+                "Error",
+                "Todos los campos de dimensiones y peso son obligatorios"
+            );
             return;
         }
 
-        // Para crear, también exigimos orderId
+        // Para CREAR exigimos que haya una orden seleccionada
         if (!form.id && !form.orderId) {
-            Alert.alert("Error", "Debes especificar un Order ID para crear un paquete");
+            Alert.alert("Error", "Debes seleccionar una orden");
             return;
         }
 
@@ -93,8 +112,6 @@ export default function PackagesScreen() {
             width: parseFloat(form.width),
             height: parseFloat(form.height),
             weight: parseFloat(form.weight),
-            // OJO: en el backend el orderId se usa solo en la ruta POST /orders/{orderId}/packages
-            // En update no lo necesitamos aquí.
         };
 
         try {
@@ -143,11 +160,12 @@ export default function PackagesScreen() {
                 <Text style={styles.text}>Peso: {item.weight} kg</Text>
             )}
 
+            {/* 🔹 Muestra la relación con la orden */}
             {item.orderId && (
-                <Text style={styles.text}>Order ID: {item.orderId}</Text>
+                <Text style={styles.text}>Orden asociada: #{item.orderId}</Text>
             )}
 
-            <View style={styles.row}>
+            <View className="row" style={styles.row}>
                 <TouchableOpacity
                     style={[styles.button, styles.editButton]}
                     onPress={() => handleEdit(item)}
@@ -219,16 +237,34 @@ export default function PackagesScreen() {
                     }
                 />
 
-                {/* Solo obligatorio para crear, no para editar */}
-                <TextInput
-                    style={styles.input}
-                    placeholder="Order ID (solo para crear)"
-                    value={form.orderId}
-                    keyboardType="numeric"
-                    onChangeText={(text) =>
-                        setForm((f) => ({ ...f, orderId: text }))
-                    }
-                />
+                {/* 🔽 Picker para seleccionar UNA sola orden */}
+                {!form.id && (
+                    <>
+                        <Text style={{ marginBottom: 4, fontWeight: "600" }}>
+                            Orden asociada
+                        </Text>
+                        <View style={styles.pickerWrapper}>
+                            <Picker
+                                selectedValue={form.orderId || ""}
+                                onValueChange={(value) =>
+                                    setForm((f) => ({ ...f, orderId: value }))
+                                }
+                            >
+                                <Picker.Item
+                                    label="Selecciona una orden..."
+                                    value=""
+                                />
+                                {orders.map((order) => (
+                                    <Picker.Item
+                                        key={order.id}
+                                        label={`#${order.id} - ${order.details ?? ""}`}
+                                        value={String(order.id)}
+                                    />
+                                ))}
+                            </Picker>
+                        </View>
+                    </>
+                )}
 
                 <TouchableOpacity
                     style={[styles.button, styles.saveButton]}
@@ -236,11 +272,7 @@ export default function PackagesScreen() {
                     disabled={saving}
                 >
                     <Text style={styles.buttonText}>
-                        {saving
-                            ? "Guardando..."
-                            : form.id
-                                ? "Actualizar"
-                                : "Crear"}
+                        {saving ? "Guardando..." : form.id ? "Actualizar" : "Crear"}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -291,4 +323,11 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     saveButton: { backgroundColor: "#28a745", marginTop: 4 },
+    pickerWrapper: {
+        backgroundColor: "#f9f9f9",
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "#ddd",
+        marginBottom: 8,
+    },
 });
