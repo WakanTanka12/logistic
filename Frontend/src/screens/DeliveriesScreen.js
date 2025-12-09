@@ -1,3 +1,4 @@
+// src/screens/DeliveriesScreen.js
 import React, { useEffect, useState } from "react";
 import {
     View,
@@ -9,19 +10,24 @@ import {
     ActivityIndicator,
     Alert,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
+
 import {
     getAllDeliveries,
     createDelivery,
     updateDelivery,
     deleteDelivery,
 } from "../api/deliveriesApi";
-import { getDriverById } from "../api/driversApi";
-import { getOrderById } from "../api/ordersApi";
+
+import { getAllDrivers } from "../api/driversApi";
+import { getAllOrders } from "../api/ordersApi";
+import { getAllRoutes } from "../api/routesApi";
 
 export default function DeliveriesScreen() {
     const [deliveries, setDeliveries] = useState([]);
-    const [drivers, setDrivers] = useState([]); // DriverResponse[]
-    const [orders, setOrders] = useState([]);   // OrderResponse[]
+    const [drivers, setDrivers] = useState([]);
+    const [orders, setOrders] = useState([]);
+    const [routes, setRoutes] = useState([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
 
@@ -29,16 +35,23 @@ export default function DeliveriesScreen() {
         id: null,
         status: "",
         deliveryDate: "",
-        driverId: "",
-        orderId: "",
+        driverId: null,
+        orderId: null,
+        routeId: null,
     });
 
-    // 🔹 Cargar todas las entregas
+    // 🔹 Normaliza fechas "2025/12/11" -> "2025-12-11"
+    const normalizeDate = (str) => {
+        if (!str) return "";
+        return str.replace(/\//g, "-");
+    };
+
+    // ======== LOADERS ========
     const loadDeliveries = async () => {
         try {
             setLoading(true);
             const res = await getAllDeliveries();
-            setDeliveries(res.data);
+            setDeliveries(res.data ?? res);
         } catch (err) {
             console.error(err);
             Alert.alert("Error", "No se pudieron cargar las entregas");
@@ -47,60 +60,49 @@ export default function DeliveriesScreen() {
         }
     };
 
-    // 🔹 Cargar un driver por ID y almacenarlo si no existe aún
-    const loadDriver = async (driverId) => {
+    const loadDrivers = async () => {
         try {
-            // evitar duplicados
-            if (drivers.some((d) => d.id === driverId)) return;
-
-            const res = await getDriverById(driverId);
-            setDrivers((prev) => [...prev, res.data]);
+            const res = await getAllDrivers();
+            setDrivers(res.data ?? res);
         } catch (err) {
-            console.error("Error fetching driver:", err);
+            console.error("Error cargando drivers:", err);
         }
     };
 
-    // 🔹 Cargar una orden por ID y almacenarla si no existe aún
-    const loadOrder = async (orderId) => {
+    const loadOrders = async () => {
         try {
-            if (orders.some((o) => o.id === orderId)) return;
-
-            const res = await getOrderById(orderId);
-            setOrders((prev) => [...prev, res.data]);
+            const res = await getAllOrders();
+            setOrders(res.data ?? res);
         } catch (err) {
-            console.error("Error fetching order:", err);
+            console.error("Error cargando órdenes:", err);
+        }
+    };
+
+    const loadRoutes = async () => {
+        try {
+            const res = await getAllRoutes();
+            setRoutes(res.data ?? res);
+        } catch (err) {
+            console.error("Error cargando rutas:", err);
         }
     };
 
     useEffect(() => {
         loadDeliveries();
+        loadDrivers();
+        loadOrders();
+        loadRoutes();
     }, []);
 
-    // Cuando cambian las entregas, cargamos drivers y órdenes relacionadas
-    useEffect(() => {
-        if (!deliveries.length) {
-            setDrivers([]);
-            setOrders([]);
-            return;
-        }
-
-        deliveries.forEach((delivery) => {
-            if (delivery.driverId) {
-                loadDriver(delivery.driverId);
-            }
-            if (delivery.orderId) {
-                loadOrder(delivery.orderId);
-            }
-        });
-    }, [deliveries]);
-
+    // ======== FORM ========
     const handleEdit = (delivery) => {
         setForm({
             id: delivery.id,
             status: delivery.status || "",
             deliveryDate: delivery.deliveryDate || "",
-            driverId: delivery.driverId ? String(delivery.driverId) : "",
-            orderId: delivery.orderId ? String(delivery.orderId) : "",
+            driverId: delivery.driverId ?? null,
+            orderId: delivery.orderId ?? null,
+            routeId: delivery.routeId ?? null,
         });
     };
 
@@ -124,25 +126,29 @@ export default function DeliveriesScreen() {
     };
 
     const handleSubmit = async () => {
-        if (!form.orderId || !form.driverId) {
-            Alert.alert("Error", "OrderId y DriverId son obligatorios");
+        if (!form.driverId || !form.orderId || !form.routeId) {
+            Alert.alert(
+                "Error",
+                "Debes seleccionar un Conductor, una Orden y una Ruta"
+            );
             return;
         }
 
         const payload = {
             status: form.status || "PENDING",
-            deliveryDate: form.deliveryDate || null, // formato según tu backend (LocalDate / LocalDateTime)
+            deliveryDate: form.deliveryDate
+                ? normalizeDate(form.deliveryDate)
+                : null,
             driverId: Number(form.driverId),
             orderId: Number(form.orderId),
+            routeId: Number(form.routeId),
         };
 
         try {
             setSaving(true);
-
             if (form.id) {
                 await updateDelivery(form.id, payload);
             } else {
-                // createDelivery debería internamente hacer POST a /drivers/{driverId}/deliveries
                 await createDelivery(payload);
             }
 
@@ -150,8 +156,9 @@ export default function DeliveriesScreen() {
                 id: null,
                 status: "",
                 deliveryDate: "",
-                driverId: "",
-                orderId: "",
+                driverId: null,
+                orderId: null,
+                routeId: null,
             });
 
             await loadDeliveries();
@@ -163,51 +170,66 @@ export default function DeliveriesScreen() {
         }
     };
 
-    const renderItem = ({ item }) => {
-        const driver = drivers.find((d) => d.id === item.driverId);
-        const order = orders.find((o) => o.id === item.orderId);
-
-        return (
-            <View style={styles.card}>
-                <Text style={styles.title}>Entrega #{item.id}</Text>
-                <Text style={styles.text}>Estado: {item.status}</Text>
-
-                {item.deliveryDate && (
-                    <Text style={styles.text}>Fecha: {item.deliveryDate}</Text>
-                )}
-
-                <Text style={styles.text}>
-                    Driver:{" "}
-                    {driver
-                        ? `${driver.firstName} ${driver.lastName}`
-                        : item.driverId || "N/D"}
-                </Text>
-
-                <Text style={styles.text}>
-                    Orden:{" "}
-                    {order
-                        ? `#${order.id} - ${order.details ?? ""}`
-                        : item.orderId || "N/D"}
-                </Text>
-
-                <View style={styles.row}>
-                    <TouchableOpacity
-                        style={[styles.button, styles.editButton]}
-                        onPress={() => handleEdit(item)}
-                    >
-                        <Text style={styles.buttonText}>Editar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[styles.button, styles.deleteButton]}
-                        onPress={() => handleDelete(item.id)}
-                    >
-                        <Text style={styles.buttonText}>Eliminar</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        );
+    // ======== HELPERS PARA NOMBRES ========
+    const getRouteLabel = (delivery) => {
+        const route = routes.find((r) => r.id === delivery.routeId);
+        if (route) {
+            return (
+                route.name ||
+                route.routeName || // por si tu backend usa este
+                `Ruta #${route.id}`
+            );
+        }
+        if (delivery.routeId != null) return `Ruta #${delivery.routeId}`;
+        return "Sin ruta";
     };
 
+    const getDriverLabel = (delivery) => {
+        const driver = drivers.find((d) => d.id === delivery.driverId);
+        if (driver) return `${driver.firstName} ${driver.lastName}`;
+        if (delivery.driverId != null) return `Driver #${delivery.driverId}`;
+        return "Sin conductor";
+    };
+
+    const getOrderLabel = (delivery) => {
+        const order = orders.find((o) => o.id === delivery.orderId);
+        if (order) return `#${order.id} - ${order.details ?? ""}`;
+        if (delivery.orderId != null) return `Orden #${delivery.orderId}`;
+        return "Sin orden";
+    };
+
+    // ======== ITEM LISTA ========
+    const renderItem = ({ item }) => (
+        <View style={styles.card}>
+            <Text style={styles.title}>Entrega #{item.id}</Text>
+            <Text style={styles.text}>Estado: {item.status}</Text>
+
+            {item.deliveryDate && (
+                <Text style={styles.text}>Fecha: {item.deliveryDate}</Text>
+            )}
+
+            <Text style={styles.text}>Driver: {getDriverLabel(item)}</Text>
+            <Text style={styles.text}>Orden: {getOrderLabel(item)}</Text>
+            <Text style={styles.text}>Ruta: {getRouteLabel(item)}</Text>
+
+            <View style={styles.row}>
+                <TouchableOpacity
+                    style={[styles.button, styles.editButton]}
+                    onPress={() => handleEdit(item)}
+                >
+                    <Text style={styles.buttonText}>Editar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.button, styles.deleteButton]}
+                    onPress={() => handleDelete(item.id)}
+                >
+                    <Text style={styles.buttonText}>Eliminar</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+
+    // ======== RENDER ========
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Entregas</Text>
@@ -233,9 +255,7 @@ export default function DeliveriesScreen() {
                     style={styles.input}
                     placeholder="Estado (PENDING / IN_ROUTE / DELIVERED)"
                     value={form.status}
-                    onChangeText={(text) =>
-                        setForm((f) => ({ ...f, status: text }))
-                    }
+                    onChangeText={(text) => setForm((f) => ({ ...f, status: text }))}
                 />
 
                 <TextInput
@@ -247,25 +267,69 @@ export default function DeliveriesScreen() {
                     }
                 />
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Driver ID"
-                    value={form.driverId}
-                    keyboardType="numeric"
-                    onChangeText={(text) =>
-                        setForm((f) => ({ ...f, driverId: text }))
-                    }
-                />
+                {/* Picker Driver */}
+                <Text style={styles.label}>Conductor</Text>
+                <View style={styles.pickerWrapper}>
+                    <Picker
+                        selectedValue={form.driverId}
+                        onValueChange={(value) =>
+                            setForm((f) => ({ ...f, driverId: value }))
+                        }
+                    >
+                        <Picker.Item label="Selecciona un conductor..." value={null} />
+                        {drivers.map((d) => (
+                            <Picker.Item
+                                key={d.id}
+                                label={`${d.firstName} ${d.lastName}`}
+                                value={d.id}
+                            />
+                        ))}
+                    </Picker>
+                </View>
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Order ID"
-                    value={form.orderId}
-                    keyboardType="numeric"
-                    onChangeText={(text) =>
-                        setForm((f) => ({ ...f, orderId: text }))
-                    }
-                />
+                {/* Picker Orden */}
+                <Text style={styles.label}>Orden</Text>
+                <View style={styles.pickerWrapper}>
+                    <Picker
+                        selectedValue={form.orderId}
+                        onValueChange={(value) =>
+                            setForm((f) => ({ ...f, orderId: value }))
+                        }
+                    >
+                        <Picker.Item label="Selecciona una orden..." value={null} />
+                        {orders.map((o) => (
+                            <Picker.Item
+                                key={o.id}
+                                label={`Orden #${o.id}`}
+                                value={o.id}
+                            />
+                        ))}
+                    </Picker>
+                </View>
+
+                {/* Picker Ruta */}
+                <Text style={styles.label}>Ruta</Text>
+                <View style={styles.pickerWrapper}>
+                    <Picker
+                        selectedValue={form.routeId}
+                        onValueChange={(value) =>
+                            setForm((f) => ({ ...f, routeId: value }))
+                        }
+                    >
+                        <Picker.Item label="Selecciona una ruta..." value={null} />
+                        {routes.map((r) => (
+                            <Picker.Item
+                                key={r.id}
+                                label={
+                                    r.name ||
+                                    r.routeName || // por si el backend usa esto
+                                    `Ruta #${r.id}`
+                                }
+                                value={r.id}
+                            />
+                        ))}
+                    </Picker>
+                </View>
 
                 <TouchableOpacity
                     style={[styles.button, styles.saveButton]}
@@ -273,11 +337,7 @@ export default function DeliveriesScreen() {
                     disabled={saving}
                 >
                     <Text style={styles.buttonText}>
-                        {saving
-                            ? "Guardando..."
-                            : form.id
-                                ? "Actualizar"
-                                : "Crear"}
+                        {saving ? "Guardando..." : form.id ? "Actualizar" : "Crear"}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -328,4 +388,12 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     saveButton: { backgroundColor: "#28a745", marginTop: 4 },
+    label: { marginTop: 8, marginBottom: 4, fontWeight: "600" },
+    pickerWrapper: {
+        backgroundColor: "#f9f9f9",
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "#ddd",
+        marginBottom: 8,
+    },
 });

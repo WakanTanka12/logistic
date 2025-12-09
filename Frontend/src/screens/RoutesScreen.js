@@ -1,3 +1,4 @@
+// src/screens/RoutesScreen.js
 import React, { useEffect, useState } from "react";
 import {
     View,
@@ -9,19 +10,21 @@ import {
     ActivityIndicator,
     Alert,
 } from "react-native";
+
 import {
     getAllRoutes,
     createRoute,
     updateRoute,
     deleteRoute,
 } from "../api/routesApi";
-import { getDeliveriesByRoute } from "../api/deliveriesApi";
+
+import { getAllDeliveries } from "../api/deliveriesApi";
 import { getDriverById } from "../api/driversApi";
 
 export default function RoutesScreen() {
     const [routes, setRoutes] = useState([]);
-    const [deliveriesByRoute, setDeliveriesByRoute] = useState({});
-    const [drivers, setDrivers] = useState({});
+    const [deliveries, setDeliveries] = useState([]); // TODAS las entregas
+    const [drivers, setDrivers] = useState({});       // { [driverId]: DriverResponse }
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
 
@@ -32,73 +35,60 @@ export default function RoutesScreen() {
         destination: "",
     });
 
-    // ---------------------------------------------------------
-    // LOAD ROUTES
-    // ---------------------------------------------------------
+    // ================= CARGAS =================
     const loadRoutes = async () => {
         try {
             setLoading(true);
             const res = await getAllRoutes();
-            setRoutes(res.data);
+            setRoutes(res.data ?? res);
         } catch (err) {
+            console.error(err);
             Alert.alert("Error", "No se pudieron cargar las rutas");
         } finally {
             setLoading(false);
         }
     };
 
-    // ---------------------------------------------------------
-    // LOAD DELIVERIES FOR EACH ROUTE
-    // ---------------------------------------------------------
-    const loadDeliveriesForRoute = async (routeId) => {
+    const loadAllDeliveries = async () => {
         try {
-            const res = await getDeliveriesByRoute(routeId);
-            setDeliveriesByRoute((prev) => ({
-                ...prev,
-                [routeId]: res.data,
-            }));
+            const res = await getAllDeliveries();
+            const list = res.data ?? res;
+            setDeliveries(list);
 
-            // Load drivers for these deliveries
-            res.data.forEach((delivery) => {
-                if (delivery.driverId) loadDriver(delivery.driverId);
+            // cargar drivers para esas deliveries
+            list.forEach((d) => {
+                if (d.driverId) loadDriver(d.driverId);
             });
         } catch (err) {
-            console.error("Error loading deliveries:", err);
+            console.error("Error cargando entregas:", err);
         }
     };
 
-    // ---------------------------------------------------------
-    // LOAD DRIVER BY ID
-    // ---------------------------------------------------------
     const loadDriver = async (driverId) => {
-        if (drivers[driverId]) return; // avoid duplicates
+        if (drivers[driverId]) return; // ya lo tenemos
 
         try {
             const res = await getDriverById(driverId);
             setDrivers((prev) => ({
                 ...prev,
-                [driverId]: res.data,
+                [driverId]: res.data ?? res,
             }));
         } catch (err) {
-            console.error("Error loading driver:", err);
+            console.error("Error cargando driver:", err);
         }
     };
 
     useEffect(() => {
         loadRoutes();
+        loadAllDeliveries();
     }, []);
 
-    useEffect(() => {
-        routes.forEach((route) => loadDeliveriesForRoute(route.id));
-    }, [routes]);
-
-    // ---------------------------------------------------------
-    // FORM HANDLING
-    // ---------------------------------------------------------
+    // ================= FORM =================
     const handleEdit = (route) => {
         setForm({
             id: route.id,
-            name: route.name || "",
+            // por si el backend usa "routeName" en lugar de "name"
+            name: route.name || route.routeName || "",
             origin: route.origin || "",
             destination: route.destination || "",
         });
@@ -115,6 +105,7 @@ export default function RoutesScreen() {
                         await deleteRoute(id);
                         await loadRoutes();
                     } catch (err) {
+                        console.error(err);
                         Alert.alert("Error", "No se pudo eliminar la ruta");
                     }
                 },
@@ -145,42 +136,62 @@ export default function RoutesScreen() {
             setForm({ id: null, name: "", origin: "", destination: "" });
             await loadRoutes();
         } catch (err) {
+            console.error(err);
             Alert.alert("Error", "No se pudo guardar la ruta");
         } finally {
             setSaving(false);
         }
     };
 
-    // ---------------------------------------------------------
-    // RENDER ROUTE ITEM
-    // ---------------------------------------------------------
+    // ================= ITEM =================
     const renderItem = ({ item }) => {
-        const deliveries = deliveriesByRoute[item.id] || [];
+        // nombre robusto
+        const routeName = item.name || item.routeName || `Ruta #${item.id}`;
+
+        // todas las deliveries de ESTA ruta
+        const routeDeliveries = deliveries.filter(
+            (d) => d.routeId === item.id
+        );
 
         return (
             <View style={styles.card}>
-                <Text style={styles.title}>{item.name}</Text>
+                <Text style={styles.title}>{routeName}</Text>
                 <Text style={styles.text}>Origen: {item.origin}</Text>
                 <Text style={styles.text}>Destino: {item.destination}</Text>
 
-                {/* LISTA DE ENTREGAS */}
                 <View style={styles.deliveriesContainer}>
                     <Text style={styles.deliveriesTitle}>Entregas asociadas:</Text>
 
-                    {deliveries.length === 0 ? (
+                    {routeDeliveries.length === 0 ? (
                         <Text style={styles.text}>No hay entregas en esta ruta.</Text>
                     ) : (
-                        deliveries.map((delivery) => {
-                            const driver = drivers[delivery.driverId];
-                            return (
-                                <Text key={delivery.id} style={styles.text}>
-                                    Entrega #{delivery.id} - {delivery.status} | Conductor:{" "}
-                                    {driver
-                                        ? `${driver.firstName} ${driver.lastName}`
-                                        : "Cargando..."}
-                                </Text>
-                            );
-                        })
+                        <>
+                            {/* Línea con todos los IDs */}
+                            <Text
+                                style={[
+                                    styles.text,
+                                    { fontWeight: "bold", marginBottom: 4 },
+                                ]}
+                            >
+                                IDs de entregas:{" "}
+                                {routeDeliveries.map((d) => `#${d.id}`).join(", ")}
+                            </Text>
+
+                            {/* Detalle por entrega */}
+                            {routeDeliveries.map((delivery) => {
+                                const driver = drivers[delivery.driverId];
+                                return (
+                                    <Text key={delivery.id} style={styles.text}>
+                                        Entrega #{delivery.id} - {delivery.status} | Conductor:{" "}
+                                        {driver
+                                            ? `${driver.firstName} ${driver.lastName}`
+                                            : delivery.driverId
+                                                ? "Cargando..."
+                                                : "Sin conductor"}
+                                    </Text>
+                                );
+                            })}
+                        </>
                     )}
                 </View>
 
@@ -203,6 +214,7 @@ export default function RoutesScreen() {
         );
     };
 
+    // ================= RENDER =================
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Rutas</Text>
@@ -218,7 +230,6 @@ export default function RoutesScreen() {
                 />
             )}
 
-            {/* FORMULARIO */}
             <View style={styles.formContainer}>
                 <Text style={styles.formTitle}>
                     {form.id ? "Editar ruta" : "Nueva ruta"}
@@ -259,9 +270,6 @@ export default function RoutesScreen() {
     );
 }
 
-// ---------------------------------------------------------
-// STYLES
-// ---------------------------------------------------------
 const styles = StyleSheet.create({
     container: { flex: 1, padding: 12, backgroundColor: "#f5f5f5" },
     header: { fontSize: 22, fontWeight: "bold", marginBottom: 8 },

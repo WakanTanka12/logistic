@@ -17,6 +17,18 @@ import {
 } from "../api/customersApi";
 import { getOrdersByCustomer } from "../api/ordersApi";
 
+// Devuelve un nombre legible con cualquiera de los campos que existan
+const getCustomerDisplayName = (customer) => {
+    if (customer.name && customer.name.trim() !== "") {
+        return customer.name;
+    }
+
+    const fullName = `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim();
+    if (fullName) return fullName;
+
+    return `Cliente #${customer.id}`;
+};
+
 export default function CustomersScreen() {
     const [customers, setCustomers] = useState([]);
     const [orders, setOrders] = useState([]); // lista de órdenes de todos los clientes
@@ -134,7 +146,7 @@ export default function CustomersScreen() {
 
     const renderItem = ({ item }) => (
         <View style={styles.card}>
-            <Text style={styles.title}>{item.name}</Text>
+            <Text style={styles.title}>{getCustomerDisplayName(item)}</Text>
             {item.email && <Text style={styles.text}>Email: {item.email}</Text>}
             {item.address && (
                 <Text style={styles.text}>Dirección: {item.address}</Text>

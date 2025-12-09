@@ -3,6 +3,7 @@ package com.app.logistica.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -11,14 +12,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * SecurityConfig
- * -----------------------------------------------------
- * ✔ Configura Spring Security con JWT
- * ✔ Deshabilita CSRF (porque usamos token)
- * ✔ Aplica CORS global desde CorsConfig
- * ✔ Protege rutas excepto /api/auth/**
- */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -31,29 +24,37 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // ✅ Habilitar CORS global (configurado en CorsConfig)
                 .cors(cors -> cors.configure(http))
-                // ❌ Desactivar CSRF (no se usa con JWT)
                 .csrf(AbstractHttpConfigurer::disable)
-                // ✅ Definir rutas públicas y protegidas
-                
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
+                        // 🔓 Auth pública
                         .requestMatchers(
                                 "/api/auth/login",
                                 "/api/auth/register"
                         ).permitAll()
-                        .requestMatchers("/api/auth/me").authenticated()
-                        .anyRequest().authenticated()
-                )
 
-                // ✅ Política de sesión sin estado
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                // ✅ Registrar el AuthenticationProvider
-                .authenticationProvider(authenticationProvider)
-                // ✅ Registrar el filtro JWT antes del UsernamePasswordAuthenticationFilter
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                        // 🔓 Para Swagger si lo usas
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+
+                        // 🔓 GET de toda la API públicos
+                        .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+
+                        // 🔓 POST/PUT/DELETE de orders y deliveries públicos (para tus pruebas)
+                        .requestMatchers("/api/orders/**").permitAll()
+                        .requestMatchers("/api/deliveries/**").permitAll()
+
+                        // 🔒 El resto sigue necesitando JWT
+                        .anyRequest().authenticated()
+                );
 
         return http.build();
     }
