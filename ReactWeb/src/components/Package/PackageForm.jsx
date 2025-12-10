@@ -9,19 +9,22 @@ import {
 import { getAllOrders } from "../../services/OrderService";
 
 const PackageForm = () => {
-    const { id, orderId } = useParams(); // id = packageId (edit), orderId = crear bajo order
+    const { id, orderId } = useParams();
     const navigate = useNavigate();
 
+    // 1. ESTADO PLANO (Igual que tu Backend)
     const [pkg, setPkg] = useState({
         weight: 0,
-        dimensions: { length: 0, width: 0, height: 0 },
-        orderId: "", // usado cuando NO hay orderId en la URL
+        length: 0,
+        width: 0,
+        height: 0,
+        orderId: "",
     });
 
     const [orders, setOrders] = useState([]);
 
     useEffect(() => {
-        if (!orderId) loadOrders(); // solo si no viene un orderId fijo
+        if (!orderId) loadOrders();
         if (id) loadPackage();
     }, [id, orderId]);
 
@@ -39,13 +42,12 @@ const PackageForm = () => {
         try {
             const res = await getPackageById(id);
             const data = res.data;
+            // 2. CARGA CORRECTA: Mapeamos directamente los campos planos
             setPkg({
                 weight: data.weight || 0,
-                dimensions: {
-                    length: data.dimensions?.length || 0,
-                    width: data.dimensions?.width || 0,
-                    height: data.dimensions?.height || 0,
-                },
+                length: data.length || 0, // Antes fallaba buscando data.dimensions.length
+                width: data.width || 0,
+                height: data.height || 0,
                 orderId: data.orderId || "",
             });
         } catch (e) {
@@ -54,57 +56,42 @@ const PackageForm = () => {
         }
     };
 
+    // 3. HANDLER UNIFICADO (Ya no necesitamos handleDimChange)
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        // fields: weight, orderId
-        setPkg({ ...pkg, [name]: name === "weight" ? Number(value) : value });
-    };
-
-    const handleDimChange = (e) => {
         const { name, value } = e.target;
         setPkg({
             ...pkg,
-            dimensions: { ...pkg.dimensions, [name]: Number(value) },
+            [name]: value // Guardamos como string para facilitar la edición, convertimos al enviar
         });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // payload DTO
+        // 4. PAYLOAD SIMPLE
         const payload = {
             weight: Number(pkg.weight),
-            dimensions: {
-                length: Number(pkg.dimensions.length),
-                width: Number(pkg.dimensions.width),
-                height: Number(pkg.dimensions.height),
-            },
+            length: Number(pkg.length),
+            width: Number(pkg.width),
+            height: Number(pkg.height),
         };
-        console.log("=== SUBMIT PACKAGE ===");
-        console.log("Editing package? (id):", id);
-        console.log("OrderId from URL:", orderId);
-        console.log("OrderId from pkg state:", pkg.orderId);
-        console.log("Payload to send:", payload);
 
         try {
             if (id) {
-                console.log("Updating Existing Package");
                 await updatePackage(id, payload);
                 Swal.fire("Updated", "Package updated successfully", "success");
                 navigate(orderId ? `/orders/${orderId}/packages` : "/packages");
             } else {
                 const actualOrderId = orderId || pkg.orderId;
                 if (!actualOrderId) {
-                    console.warn("No orderId found");
-                    return Swal.fire("Validation", "Please select an Oredr", "warning");
+                    return Swal.fire("Validation", "Please select an Order", "warning");
                 }
-                console.log("Creating package for order:", actualOrderId);
                 await createPackageForOrder(actualOrderId, payload);
                 Swal.fire("Created", "Package created successfully", "success");
                 navigate(`/orders/${actualOrderId}/packages`);
             }
         } catch (e) {
-            console.error("Error during save", e.response?.data || e);
+            console.error("Error saving package", e);
             Swal.fire("Error", "Failed to save package", "error");
         }
     };
@@ -114,7 +101,6 @@ const PackageForm = () => {
             <h2>{id ? "Edit Package" : orderId ? "Add Package to Order" : "Add Package"}</h2>
 
             <form onSubmit={handleSubmit}>
-                {/* Selección de Order si NO viene fija en la URL */}
                 {!orderId && (
                     <div className="mb-3">
                         <label className="form-label">Order</label>
@@ -135,7 +121,7 @@ const PackageForm = () => {
                     </div>
                 )}
 
-                {/* Dimensiones */}
+                {/* 5. INPUTS ACTUALIZADOS (Referencian pkg.length directamente) */}
                 <div className="row g-3">
                     <div className="col-md-4">
                         <label className="form-label">Length</label>
@@ -143,8 +129,8 @@ const PackageForm = () => {
                             type="number"
                             className="form-control"
                             name="length"
-                            value={pkg.dimensions.length}
-                            onChange={handleDimChange}
+                            value={pkg.length}
+                            onChange={handleChange}
                             min="0"
                             step="0.01"
                             required
@@ -156,8 +142,8 @@ const PackageForm = () => {
                             type="number"
                             className="form-control"
                             name="width"
-                            value={pkg.dimensions.width}
-                            onChange={handleDimChange}
+                            value={pkg.width}
+                            onChange={handleChange}
                             min="0"
                             step="0.01"
                             required
@@ -169,8 +155,8 @@ const PackageForm = () => {
                             type="number"
                             className="form-control"
                             name="height"
-                            value={pkg.dimensions.height}
-                            onChange={handleDimChange}
+                            value={pkg.height}
+                            onChange={handleChange}
                             min="0"
                             step="0.01"
                             required
@@ -178,7 +164,6 @@ const PackageForm = () => {
                     </div>
                 </div>
 
-                {/* Peso */}
                 <div className="mb-3 mt-3">
                     <label className="form-label">Weight</label>
                     <input

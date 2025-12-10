@@ -22,7 +22,10 @@ const PackageList = () => {
             setPackages(res.data);
         } catch (e) {
             console.error(e);
-            Swal.fire("Error", "Failed to load packages", "error");
+            // Validamos si es un error de autenticación para no asustar al usuario innecesariamente
+            if (e.response && e.response.status !== 401) {
+                Swal.fire("Error", "Failed to load packages", "error");
+            }
         }
     };
 
@@ -47,11 +50,6 @@ const PackageList = () => {
                 }
             }
         });
-    };
-
-    const renderDims = (d) => {
-        if (!d) return "-";
-        return `${d.length} x ${d.width} x ${d.height}`;
     };
 
     return (
@@ -83,7 +81,8 @@ const PackageList = () => {
                     packages.map((p) => (
                         <tr key={p.id}>
                             <td>{p.id}</td>
-                            <td>{renderDims(p.dimensions)}</td>
+                            {/* ✅ CORRECCIÓN: Leemos los datos planos directamente */}
+                            <td>{`${p.length} x ${p.width} x ${p.height}`}</td>
                             <td>{p.weight}</td>
                             <td>{p.orderId || "-"}</td>
                             <td>

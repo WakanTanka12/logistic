@@ -56,7 +56,6 @@ const DriverList = () => {
                 <tr>
                     <th>ID</th>
                     <th>Full Name</th>
-                    <th>Free</th>
                     <th style={{ width: 160 }}>Actions</th>
                 </tr>
                 </thead>
@@ -65,7 +64,6 @@ const DriverList = () => {
                     <tr key={d.id}>
                         <td>{d.id}</td>
                         <td>{d.firstName} {d.lastName}</td>
-                        <td>{d.free ? "Yes" : "No"}</td>
                         <td>
                             <Link to={`/drivers/edit/${d.id}`} className="btn btn-warning btn-sm me-2">Edit</Link>
                             <button className="btn btn-danger btn-sm" onClick={() => handleDelete(d.id)}>Delete</button>

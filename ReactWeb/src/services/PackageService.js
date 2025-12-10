@@ -1,14 +1,11 @@
-import axios from "axios";
+import api from "./api.js"
 
-const PKG_URL = "http://localhost:8080/api/packages";
-const ORD_URL = "http://localhost:8080/api/orders";
-
-export const getAllPackages = () => axios.get(PKG_URL);
-export const getPackageById = (id) => axios.get(`${PKG_URL}/${id}`);
-export const createPackage = (pkg) => axios.post(PKG_URL, pkg); // uso general (no por order)
-export const updatePackage = (id, pkg) => axios.put(`${PKG_URL}/${id}`, pkg);
-export const deletePackage = (id) => axios.delete(`${PKG_URL}/${id}`);
+export const getAllPackages = () => api.get("/packages");
+export const getPackageById = (id) => api.get(`/packages/${id}`);
+export const createPackage = (pkg) => api.post("/packages", pkg); // uso general (no por order)
+export const updatePackage = (id, pkg) => api.put(`/packages/${id}`, pkg);
+export const deletePackage = (id) => api.delete(`/packages/${id}`);
 
 // Por Order
-export const getPackagesByOrder = (orderId) => axios.get(`${ORD_URL}/${orderId}/packages`);
-export const createPackageForOrder = (orderId, pkg) => axios.post(`${ORD_URL}/${orderId}/packages`, pkg);
+export const getPackagesByOrder = (orderId) => api.get(`/orders/${orderId}/packages`);
+export const createPackageForOrder = (orderId, pkg) => api.post(`/orders/${orderId}/packages`, pkg);
