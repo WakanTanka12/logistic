@@ -1,10 +1,10 @@
-import React, {useState, useEffect} from 'react'
-import {getAllOrders, deleteOrder} from "../../services/OrderService.js";
-import {useNavigate} from 'react-router-dom'
+import React, { useState, useEffect } from "react";
+import { getAllOrders, deleteOrder } from "../../services/OrderService.js";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 const OrderList = () => {
-    const [orders, setOrders] = useState([])
+    const [orders, setOrders] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -22,19 +22,23 @@ const OrderList = () => {
 
     const handleDelete = async (id) => {
         Swal.fire({
-            title: 'Confirm delete',
+            title: "Confirm delete",
             text: "Are you sure you want to delete this order?",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
+            confirmButtonText: "Yes, delete it!",
         }).then(async (result) => {
             if (result.isConfirmed) {
-                try{
+                try {
                     await deleteOrder(id);
-                    Swal.fire("Deleted!", "Order removed successfully", "success" );
+                    Swal.fire(
+                        "Deleted!",
+                        "Order removed successfully",
+                        "success"
+                    );
                     loadOrders();
                 } catch (error) {
-                    console.error("Error deleteing order", error);
+                    console.error("Error deleting order", error);
                     Swal.fire("Error", "Failed to delete order", "error");
                 }
             }
@@ -42,7 +46,7 @@ const OrderList = () => {
     };
 
     return (
-        <div className= "container mt-4">
+        <div className="container mt-4">
             <h2>Order List</h2>
             <button
                 className="btn btn-primary mb-3"
@@ -58,7 +62,7 @@ const OrderList = () => {
                     <th>Order Date</th>
                     <th>Price</th>
                     <th>Details</th>
-                    <th>Customer</th>
+                    <th>Customer ID</th> {/* 👈 cambiado */}
                     <th>Actions</th>
                 </tr>
                 </thead>
@@ -69,10 +73,13 @@ const OrderList = () => {
                         <td>{order.orderDate}</td>
                         <td>{order.price}</td>
                         <td>{order.details}</td>
-                        <td>{order.customerFullName}</td>
+                        {/* 👇 ahora usamos customerId */}
+                        <td>{order.customerId ?? "-"}</td>
                         <td>
                             <button
-                                onClick={() => navigate(`/orders/edit/${order.id}`)}
+                                onClick={() =>
+                                    navigate(`/orders/edit/${order.id}`)
+                                }
                                 className="btn btn-warning btn-sm me-2"
                             >
                                 Edit
