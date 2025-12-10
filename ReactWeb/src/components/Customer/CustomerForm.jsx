@@ -5,6 +5,7 @@ import {
     updateCustomer,
 } from "../../services/CustomerService.js";
 import { useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const CustomerForm = () => {
     const [firstName, setFirstName] = useState("");
@@ -96,7 +97,15 @@ const CustomerForm = () => {
     function saveCustomerOrUpdate(e) {
         e.preventDefault();
 
-        if (!validateForm()) return;
+        if (!validateForm()) {
+            Swal.fire({
+                title: "Error de validación",
+                text: "Uno o más campos son incorrectos",
+                icon: "error",
+                confirmButtonText: "Ok"
+            });
+            return;
+        }
 
         const customer = { firstName, lastName, email, phone, address };
 
@@ -105,30 +114,24 @@ const CustomerForm = () => {
             updateCustomer(id, customer)
                 .then((res) => {
                     console.log("Customer updated:", res.data);
+                    Swal.fire("Actualizado", "El cliente ha sido actualizado", "success")
                     navigate("/customers");
                 })
                 .catch((error) => {
                     console.error("Error UPDATE:", error);
-                    alert(
-                        `Error al actualizar: ${
-                            error.response?.status
-                        } - ${JSON.stringify(error.response?.data || "")}`
-                    );
+                    Swal.fire("Error","No se pudo actualizar al cliente", "error" );
                 });
         } else {
             // 🆕 CREATE
             addCustomer(customer)
                 .then((res) => {
                     console.log("Customer created:", res.data);
+                    Swal.fire("Registrado", "El cliente ha sido registrado", "success")
                     navigate("/customers");
                 })
                 .catch((error) => {
                     console.error("Error CREATE:", error);
-                    alert(
-                        `Error al crear: ${
-                            error.response?.status
-                        } - ${JSON.stringify(error.response?.data || "")}`
-                    );
+                    Swal.fire("Error", "No se pudo crear al cliente", "error")
                 });
         }
     }

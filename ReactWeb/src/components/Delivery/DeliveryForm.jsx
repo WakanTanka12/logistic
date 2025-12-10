@@ -81,6 +81,25 @@ const DeliveryForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if(!delivery.deliveryDate) {
+            Swal.fire("Error", "Please enter date", "error");
+            return;
+        }
+
+        //Validacion de fecha, no se puede en el pasado
+        // const selectedDate = new Date(delivery.deliveryDate + "T00:00:00");
+        // const today = new Date();
+        // today.setHours(0,0,0,0)
+        //
+        // if(selectedDate < today) {
+        //     Swal.fire({
+        //         title: "Fecha inválida",
+        //         text: "No puedes programar una entrega en el pasado. Por favor selecciona hoy o una fecha futura.",
+        //         icon: "error"
+        //     });
+        //     return;
+        // }
+
         const payload = {
             deliveryDate: delivery.deliveryDate || null,
             status: delivery.status,
