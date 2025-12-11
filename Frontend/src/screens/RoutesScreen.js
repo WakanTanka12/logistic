@@ -226,7 +226,8 @@ export default function RoutesScreen() {
                     data={routes}
                     keyExtractor={(item) => String(item.id)}
                     renderItem={renderItem}
-                    contentContainerStyle={{ paddingBottom: 140 }}
+                    style={{ flex:1 }}
+                    contentContainerStyle={{ paddingBottom: 300 }}
                 />
             )}
 

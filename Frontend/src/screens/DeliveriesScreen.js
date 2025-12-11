@@ -241,7 +241,8 @@ export default function DeliveriesScreen() {
                     data={deliveries}
                     keyExtractor={(item) => String(item.id)}
                     renderItem={renderItem}
-                    contentContainerStyle={{ paddingBottom: 180 }}
+                    style={{ flex:1 }}
+                    contentContainerStyle={{ paddingBottom: 500 }}
                 />
             )}
 

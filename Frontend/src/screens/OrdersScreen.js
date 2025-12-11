@@ -108,6 +108,7 @@ export default function OrdersScreen() {
             return;
         }
 
+        
         const priceNumber = form.price ? Number(form.price) : 0;
 
         const payload = {
@@ -194,7 +195,8 @@ export default function OrdersScreen() {
                     data={orders}
                     keyExtractor={(item) => String(item.id)}
                     renderItem={renderItem}
-                    contentContainerStyle={{ paddingBottom: 160 }}
+                    style={{ flex:1 }}
+                    contentContainerStyle={{ paddingBottom: 350 }}
                 />
             )}
 

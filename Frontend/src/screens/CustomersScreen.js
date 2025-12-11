@@ -216,7 +216,8 @@ export default function CustomersScreen() {
                     data={customers}
                     keyExtractor={(item) => String(item.id)}
                     renderItem={renderItem}
-                    contentContainerStyle={{ paddingBottom: 140 }}
+                    style={{ flex:1 }}
+                    contentContainerStyle={{ paddingBottom: 350 }}
                 />
             )}
 

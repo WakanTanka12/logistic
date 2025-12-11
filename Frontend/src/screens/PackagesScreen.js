@@ -192,7 +192,8 @@ export default function PackagesScreen() {
                     data={packages}
                     keyExtractor={(item) => String(item.id)}
                     renderItem={renderItem}
-                    contentContainerStyle={{ paddingBottom: 140 }}
+                    style={{ flex: 1}}
+                    contentContainerStyle={{ paddingBottom: 350 }}
                 />
             )}
 
