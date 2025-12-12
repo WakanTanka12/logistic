@@ -59,11 +59,27 @@ const CustomerForm = () => {
         if (!firstName.trim()) {
             copy.firstName = "First name is required";
             valid = false;
+
+        }
+        else {
+            const onlyLettersRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
+            if (!onlyLettersRegex.test(firstName)) {
+                copy.firstName = "First name cannot contain numbers";
+                valid = false;
+            }
         }
         if (!lastName.trim()) {
             copy.lastName = "Last name is required";
             valid = false;
         }
+        else {
+            const onlyLettersRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
+            if (!onlyLettersRegex.test(lastName)) {
+                copy.lastName = "Last name cannot contain numbers";
+                valid = false;
+            }
+        }
+
         if (!email.trim()) {
             copy.email = "Email is required";
             valid = false;

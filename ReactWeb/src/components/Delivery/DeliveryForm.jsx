@@ -85,7 +85,12 @@ const DeliveryForm = () => {
             Swal.fire("Error", "Please enter date", "error");
             return;
         }
+        const noNumbersRegex = /^[A-Za-z\s]+$/;
 
+        if (!delivery.status || !noNumbersRegex.test(delivery.status)) {
+            Swal.fire("Error", "Status cannot contain numbers", "error");
+            return;
+        }
         //Validacion de fecha, no se puede en el pasado
         // const selectedDate = new Date(delivery.deliveryDate + "T00:00:00");
         // const today = new Date();

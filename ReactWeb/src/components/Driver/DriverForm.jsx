@@ -38,6 +38,20 @@ const DriverForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Regex para permitir solo letras y espacios
+        const onlyLetters = /^[A-Za-z\s]+$/;
+
+        if (!driver.firstName || !onlyLetters.test(driver.firstName)) {
+            Swal.fire("Error", "First name cannot contain numbers", "error");
+            return;
+        }
+
+        if (!driver.lastName || !onlyLetters.test(driver.lastName)) {
+            Swal.fire("Error", "Last name cannot contain numbers", "error");
+            return;
+        }
+
         const payload = {
             firstName: driver.firstName,
             lastName: driver.lastName,

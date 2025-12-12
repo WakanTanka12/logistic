@@ -72,6 +72,25 @@ const RouteForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const onlyLettersRegex = /^[A-Za-z\s]+$/;
+
+// Validación de routeName
+        if (!route.routeName || !onlyLettersRegex.test(route.routeName)) {
+            Swal.fire("Error", "Route name cannot contain numbers", "error");
+            return;
+        }
+
+// Validación de origin
+        if (!route.origin || !onlyLettersRegex.test(route.origin)) {
+            Swal.fire("Error", "Origin cannot contain numbers", "error");
+            return;
+        }
+
+// Validación de destination
+        if (!route.destination || !onlyLettersRegex.test(route.destination)) {
+            Swal.fire("Error", "Destination cannot contain numbers", "error");
+            return;
+        }
         const payload = {
             routeName: route.routeName,
             origin: route.origin,
