@@ -125,7 +125,17 @@ export default function CustomersScreen() {
             Alert.alert("Error", "Nombre, apellido y email son obligatorios");
             return;
         }
+        const onlyLettersRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
 
+        if (!onlyLettersRegex.test(form.firstName)) {
+            Alert.alert("Error", "El nombre no debe contener números");
+            return;
+        }
+
+        if (!onlyLettersRegex.test(form.lastName)) {
+            Alert.alert("Error", "El apellido no debe contener números");
+            return;
+        }
         // ✅ Payload alineado con tu CustomerRequest del backend
         const payload = {
             firstName: form.firstName,

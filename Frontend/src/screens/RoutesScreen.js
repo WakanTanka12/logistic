@@ -118,6 +118,23 @@ export default function RoutesScreen() {
             Alert.alert("Error", "El nombre es obligatorio");
             return;
         }
+// No permitir números en nombre, origen y destino
+        const onlyLettersRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
+
+        if (!onlyLettersRegex.test(form.name)) {
+            Alert.alert("Error", "El nombre no debe contener números");
+            return;
+        }
+
+        if (form.origin && !onlyLettersRegex.test(form.origin)) {
+            Alert.alert("Error", "El origen no debe contener números");
+            return;
+        }
+
+        if (form.destination && !onlyLettersRegex.test(form.destination)) {
+            Alert.alert("Error", "El destino no debe contener números");
+            return;
+        }
 
         const payload = {
             name: form.name,
