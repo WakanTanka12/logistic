@@ -31,7 +31,7 @@ export default function DriversScreen() {
         firstName: "",
         lastName: "",
     });
-    const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+
 
     // 🔹 Cargar todos los conductores
     const loadDrivers = async () => {
@@ -100,7 +100,9 @@ export default function DriversScreen() {
         ]);
     };
 
+
     const handleSubmit = async () => {
+        const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
         if (!form.firstName || !form.lastName) {
             Alert.alert("Error", "El nombre completo es obligatorio");
             return;
