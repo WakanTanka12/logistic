@@ -119,6 +119,11 @@ export default function OrdersScreen() {
             return;
         }
 
+
+      if (form.price>999999) {
+        Alert.alert("Error", "El precio debe ser menor a 7 digitos");
+        return;
+      }
 // 🔹 Regex para YYYY-MM-DD
         const dateRegexISO = /^\d{4}-\d{2}-\d{2}$/;
 

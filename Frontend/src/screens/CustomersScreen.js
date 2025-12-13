@@ -125,6 +125,7 @@ export default function CustomersScreen() {
             Alert.alert("Error", "Nombre, apellido y email son obligatorios");
             return;
         }
+
         const onlyLettersRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
 
         if (!onlyLettersRegex.test(form.firstName)) {
