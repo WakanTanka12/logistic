@@ -11,6 +11,7 @@ import {
     Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import {
     getAllOrders,
     createOrder,
@@ -24,6 +25,7 @@ export default function OrdersScreen() {
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
 
     const [form, setForm] = useState({
         id: null,
@@ -34,6 +36,22 @@ export default function OrdersScreen() {
     });
 
     // 🔹 Cargar todas las órdenes
+    const formatDateToYYYYMMDD = (date) => {
+        if (!date) return "";
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    };
+
+    const onChangeDate = (event, selectedDate) => {
+        setShowDatePicker(false);
+        if (selectedDate) {
+            const dateString = formatDateToYYYYMMDD(selectedDate);
+            setForm((f) => ({ ...f, orderDate: dateString }));
+        }
+    };
+
     const loadOrders = async () => {
         try {
             setLoading(true);
@@ -58,11 +76,60 @@ export default function OrdersScreen() {
         }
     };
 
+
+
     // Primera carga al montar
     useEffect(() => {
         loadOrders();
         loadCustomers();
     }, []);
+
+
+    const checkDateRange = (dateString, value, unit, type) => {
+        // 1. Obtener la fecha seleccionada
+        const selectedDate = new Date(dateString);
+        selectedDate.setHours(0, 0, 0, 0); // Limpiar la hora para comparar solo fechas
+
+        // 2. Obtener la fecha de referencia (Hoy)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 3. Calcular la fecha límite (boundary date)
+        const boundaryDate = new Date(today);
+
+        switch (unit) {
+            case 'days':
+                // Si es 'max', restamos; si es 'min', sumamos (la lógica está invertida para la comparación)
+                boundaryDate.setDate(boundaryDate.getDate() + (type === 'max' ? -value : value));
+                break;
+            case 'weeks':
+                boundaryDate.setDate(boundaryDate.getDate() + (type === 'max' ? -value * 7 : value * 7));
+                break;
+            case 'months':
+                boundaryDate.setMonth(boundaryDate.getMonth() + (type === 'max' ? -value : value));
+                break;
+            case 'years':
+                boundaryDate.setFullYear(boundaryDate.getFullYear() + (type === 'max' ? -value : value));
+                break;
+            default:
+                return true;
+        }
+
+        // 4. Realizar la comparación
+        if (type === 'max') {
+            // Validación MÁXIMO: La fecha seleccionada DEBE ser posterior o igual a la fecha límite
+            return selectedDate >= boundaryDate;
+        } else if (type === 'min') {
+            // Validación MÍNIMO: La fecha seleccionada DEBE ser anterior o igual a la fecha límite
+            return selectedDate <= boundaryDate;
+        }
+
+        return false;
+    };
+
+    const checkPriceRange = (price, min, max) => {
+        return price >= min && price <= max;
+    };
 
     // 🔹 Editar una orden
     const handleEdit = (order) => {
@@ -103,42 +170,41 @@ export default function OrdersScreen() {
 
     // 🔹 Guardar nueva o actualizar orden
     const handleSubmit = async () => {
+
+        const priceRegex = /^[0-9]+(\.[0-9]+)?$/;
+
+        if(!form.orderDate || !form.price) {
+            Alert.alert("Error", "Por favor ponga la fecha o el precio");
+            return;
+        }
+
         if (!form.customerId) {
             Alert.alert("Error", "Selecciona un cliente");
             return;
         }
 
-        const priceRegex = /^[0-9]+(\.[0-9]+)?$/;
+        if(!checkDateRange(form.orderDate, 3, 'years', 'min')) {
+            Alert.alert("Error", "La orden debe ser máximo dentro de 3 años");
+            return;
+        }
 
         if (!priceRegex.test(form.price)) {
             Alert.alert("Error", "El precio debe ser un número válido (sin letras)");
             return;
         }
+
+        const priceNumber = form.price ? Number(form.price) : 0;
+
+        if (!checkPriceRange(form.price, 1 , 1000)) {
+            Alert.alert("Error", "El precio debe estar entre el rango de 1 y 1000");
+            return;
+        }
+
         if (!form.orderDate || form.orderDate.trim() === "") {
             Alert.alert("Error", "La fecha es obligatoria");
             return;
         }
 
-
-      if (form.price>999999) {
-        Alert.alert("Error", "El precio debe ser menor a 7 digitos");
-        return;
-      }
-// 🔹 Regex para YYYY-MM-DD
-        const dateRegexISO = /^\d{4}-\d{2}-\d{2}$/;
-
-// 🔹 Regex para DD/MM/YYYY (si el usuario escribe así)
-        const dateRegexSlash = /^\d{2}\/\d{2}\/\d{4}$/;
-
-// 🔹 Validar formato correcto
-        if (!dateRegexISO.test(form.orderDate) && !dateRegexSlash.test(form.orderDate)) {
-            Alert.alert(
-                "Error",
-                "La fecha debe tener un formato válido (YYYY-MM-DD o DD/MM/YYYY)"
-            );
-            return;
-        }
-        const priceNumber = form.price ? Number(form.price) : 0;
 
         const payload = {
             // si no ponen fecha, usamos hoy. Si ponen con /, la normalizamos.
@@ -235,14 +301,26 @@ export default function OrdersScreen() {
                     {form.id ? "Editar orden" : "Nueva orden"}
                 </Text>
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Fecha de la orden (YYYY-MM-DD)"
-                    value={form.orderDate}
-                    onChangeText={(text) =>
-                        setForm((f) => ({ ...f, orderDate: text }))
-                    }
-                />
+                <Text style={{ marginBottom: 4, fontWeight: "600" }}>Fecha de la orden</Text>
+                <TouchableOpacity
+                    style={styles.input} // Reutiliza el estilo del input para la apariencia
+                    onPress={() => setShowDatePicker(true)} // Abre el selector
+                >
+                    <Text style={form.orderDate ? { color: "#000" } : { color: "#999" }}>
+                        {form.orderDate || "Selecciona la fecha (YYYY-MM-DD)"}
+                    </Text>
+                </TouchableOpacity>
+
+                {/* 2. SELECTOR DE FECHA (Aparece condicionalmente) */}
+                {showDatePicker && (
+                    <DateTimePicker
+                        // Aquí usamos la fecha del formulario, o la de hoy si no hay
+                        value={form.orderDate ? new Date(form.orderDate) : new Date()}
+                        mode="date"
+                        display="default"
+                        onChange={onChangeDate} // La función que guarda la fecha seleccionada
+                    />
+                )}
 
                 <TextInput
                     style={styles.input}
@@ -256,7 +334,7 @@ export default function OrdersScreen() {
 
                 <TextInput
                     style={styles.input}
-                    placeholder="Detalles"
+                    placeholder="Detalles (opcional)"
                     value={form.details}
                     onChangeText={(text) =>
                         setForm((f) => ({ ...f, details: text }))

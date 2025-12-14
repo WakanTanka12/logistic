@@ -81,7 +81,7 @@ export default function RoutesScreen() {
     useEffect(() => {
         loadRoutes();
         loadAllDeliveries();
-    }, []);
+    }, [loadRoutes, loadAllDeliveries]);
 
     // ================= FORM =================
     const handleEdit = (route) => {

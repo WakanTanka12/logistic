@@ -12,9 +12,9 @@ import lombok.NoArgsConstructor;
 
 public class PackageResponse {
     private float id;
-    private float weight;
-    private float length;
-    private float width;
-    private float height;
+    private double weight;
+    private double length;
+    private double width;
+    private double height;
     private Long orderId;
 }

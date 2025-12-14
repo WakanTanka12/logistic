@@ -24,10 +24,10 @@ public class Package {
     @JsonManagedReference
      private Order order;
 
-    private float weight;
-    private float length;
-    private float width;
-    private float height;
+    private double weight;
+    private double length;
+    private double width;
+    private double height;
 
 
 }

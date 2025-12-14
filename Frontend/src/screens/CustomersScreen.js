@@ -121,15 +121,27 @@ export default function CustomersScreen() {
     };
 
     const handleSubmit = async () => {
-        if (!form.firstName || !form.lastName || !form.email) {
-            Alert.alert("Error", "Nombre, apellido y email son obligatorios");
+        if (!form.firstName || !form.lastName || !form.email || !form.phone || !form.address) {
+            Alert.alert(
+              'Error',
+              'Todos los campos son obligatorios',
+            );
             return;
         }
 
         const onlyLettersRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
 
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+        const phoneRegex = /^[67][0-9]{7}$/
+
         if (!onlyLettersRegex.test(form.firstName)) {
-            Alert.alert("Error", "El nombre no debe contener números");
+          Alert.alert('Error', 'El nombre no debe contener números');
+          return;
+        }
+
+        if (form.firstName.length < 2 || form.firstName.length > 50) {
+            Alert.alert("Error","El nombre debe tener entre 2 y 50 carácteres");
             return;
         }
 
@@ -137,6 +149,24 @@ export default function CustomersScreen() {
             Alert.alert("Error", "El apellido no debe contener números");
             return;
         }
+
+        if (form.lastName.length < 2 || form.lastName.length > 50) {
+            Alert.alert('Error', 'El apellido debe tener entre 2 y 50 carácteres');
+            return;
+        }
+
+        if (!emailRegex.test(form.email)) {
+            Alert.alert("Error", "El email no tiene un formato válido");
+            return;
+        }
+
+        if(!phoneRegex.test(form.phone)) {
+            Alert.alert("Error", "El teléfono no tiene un formato válido en Bolivia");
+            return;
+        }
+
+
+
         // ✅ Payload alineado con tu CustomerRequest del backend
         const payload = {
             firstName: form.firstName,

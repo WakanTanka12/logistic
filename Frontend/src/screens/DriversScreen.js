@@ -81,48 +81,50 @@ export default function DriversScreen() {
         });
     };
 
-    const handleDelete = (id) => {
-        Alert.alert("Confirmar", "¿Eliminar este conductor?", [
-            { text: "Cancelar", style: "cancel" },
-            {
-                text: "Eliminar",
-                style: "destructive",
-                onPress: async () => {
-                    try {
-                        await deleteDriver(id);
-                        await loadDrivers();
-                    } catch (err) {
-                        console.error("Error deleting driver:", err);
-                        Alert.alert("Error", "No se pudo eliminar el conductor");
-                    }
-                },
-            },
-        ]);
+    const handleDelete = id => {
+      Alert.alert('Confirmar', '¿Eliminar este conductor?', [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteDriver(id);
+              await loadDrivers();
+            } catch (err) {
+              console.error('Error deleting driver:', err);
+              Alert.alert('Error', 'No se pudo eliminar el conductor');
+            }
+          },
+        },
+      ]);
     };
 
 
     const handleSubmit = async () => {
-        const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
-        if (!form.firstName || !form.lastName) {
-            Alert.alert("Error", "El nombre completo es obligatorio");
-            return;
-        }
-        if (!form.firstName || !nameRegex.test(form.firstName)) {
-            Alert.alert(
-                "Error",
-                "El nombre solo puede contener letras y espacios"
-            );
-            return;
+
+        const onlyLettersRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
+
+        if (!onlyLettersRegex.test(form.firstName)) {
+          Alert.alert('Error', 'El nombre no debe contener números');
+          return;
         }
 
-        // 🔹 Validar lastName
-        if (!form.lastName || !nameRegex.test(form.lastName)) {
-            Alert.alert(
-                "Error",
-                "El apellido solo puede contener letras y espacios"
-            );
-            return;
+        if (form.firstName.length < 2 || form.firstName.length > 50) {
+          Alert.alert('Error', 'El nombre debe tener entre 2 y 50 carácteres');
+          return;
         }
+
+        if (!onlyLettersRegex.test(form.lastName)) {
+          Alert.alert('Error', 'El apellido no debe contener números');
+          return;
+        }
+
+        if (form.lastName.length < 2 || form.lastName.length > 50) {
+          Alert.alert('Error', 'El apellido debe tener entre 2 y 50 carácteres');
+          return;
+        }
+        
 
         const payload = {
             firstName: form.firstName,

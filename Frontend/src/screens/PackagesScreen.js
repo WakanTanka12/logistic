@@ -93,6 +93,8 @@ export default function PackagesScreen() {
     };
 
     const handleSubmit = async () => {
+        const numberOnlyRegex = /^\d+(\.\d+)?$/;
+
         if (!form.length || !form.width || !form.height || !form.weight) {
             Alert.alert(
                 "Error",
@@ -104,6 +106,11 @@ export default function PackagesScreen() {
         // Para CREAR exigimos que haya una orden seleccionada
         if (!form.id && !form.orderId) {
             Alert.alert("Error", "Debes seleccionar una orden");
+            return;
+        }
+
+        if (!numberOnlyRegex.test(form.length) || !numberOnlyRegex.test(form.width) || !numberOnlyRegex.test(form.height) || !numberOnlyRegex.test(form.weight)) {
+            Alert.alert("Error", "Las dimensiones y el peso deben ser números (enteros o decimales) y solo con .");
             return;
         }
 
