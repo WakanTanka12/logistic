@@ -41,15 +41,4 @@ public class Route {
     private String routeName;
     private String origin;
     private String destination;
-    private BigDecimal distance;
-    private Duration estimatedDuration;
-
-    public Route(Long id, String routeName, String origin, String destination, BigDecimal distance, Duration estimatedDuration) {
-    this.id = id;
-    this.routeName = routeName;
-    this.origin = origin;
-    this.destination = destination;
-    this.distance = distance;
-    this.estimatedDuration = estimatedDuration;
-    }
 }

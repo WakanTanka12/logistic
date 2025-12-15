@@ -11,10 +11,43 @@ const DriverForm = () => {
         firstName: "",
         lastName: "",
     });
+    const [errors, setErrors] = useState({
+        firstName: "",
+        lastName: "",
+    });
 
     useEffect(() => {
         if (id) loadDriver();
     }, [id]);
+
+    function validateForm () {
+        let valid = true;
+        const copy = {
+            firstName: "",
+            lastName: "",
+        };
+
+        const onlyLettersRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
+
+        if(!driver.firstName) {
+            copy.firstName = "First Name is required";
+            valid = false;
+        } else if (!onlyLettersRegex.test(driver.firstName)) {
+            copy.firstName = "First Name cannot have numbers";
+            valid = false;
+        }
+
+        if(!driver.lastName) {
+            copy.lastName = "Last Name is required";
+            valid = false;
+        } else if (!onlyLettersRegex.test(driver.lastName)) {
+            copy.lastName = "Last Name cannot have numbers";
+            valid = false;
+        }
+
+        setErrors(copy);
+        return valid;
+    }
 
     const loadDriver = async () => {
         try {
@@ -38,17 +71,12 @@ const DriverForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Regex para permitir solo letras y espacios
-        const onlyLetters = /^[A-Za-z\s]+$/;
-
-        if (!driver.firstName || !onlyLetters.test(driver.firstName)) {
-            Swal.fire("Error", "First name cannot contain numbers", "error");
-            return;
-        }
-
-        if (!driver.lastName || !onlyLetters.test(driver.lastName)) {
-            Swal.fire("Error", "Last name cannot contain numbers", "error");
+        if (!validateForm()) {
+            Swal.fire({
+                title: "Error",
+                text: "Please correct the highlighted errors",
+                icon: "error"
+            });
             return;
         }
 

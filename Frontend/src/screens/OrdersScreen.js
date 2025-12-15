@@ -11,7 +11,6 @@ import {
     Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import {
     getAllOrders,
     createOrder,
@@ -25,7 +24,6 @@ export default function OrdersScreen() {
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [showDatePicker, setShowDatePicker] = useState(false);
 
     const [form, setForm] = useState({
         id: null,

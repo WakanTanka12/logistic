@@ -4,12 +4,27 @@ import Swal from "sweetalert2";
 import { createOrder, updateOrder, getOrderById } from "../../services/OrderService";
 import { getAllCustomers } from "../../services/CustomerService";
 
+const getLocalDateString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    // getMonth() es base 0, por eso sumamos 1
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 const OrderForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
     const [order, setOrder] = useState({
-        orderDate: "",
+        orderDate: id? "" : getLocalDateString(),
+        price: "",
+        details: "",
+        customerId: "",
+    });
+    const [errors, setErrors] = useState({
+        orderDate: id? "" : getLocalDateString(),
         price: "",
         details: "",
         customerId: "",
@@ -22,6 +37,24 @@ const OrderForm = () => {
         loadCustomers();
         if (id) loadOrder();
     }, [id]);
+
+    function validateForm () {
+        let valid = true;
+        const copy = {
+            orderDate: "",
+            price: "",
+            details: "",
+            customerId: "",
+        };
+
+        if(!order.price) {
+            copy.price = "Price is required";
+            valid = false;
+        }
+
+        setErrors(copy);
+        return valid;
+    }
 
     const loadCustomers = async () => {
         try {
@@ -63,7 +96,14 @@ const OrderForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        if (!validateForm()) {
+            Swal.fire({
+                title: "Error",
+                text: "Please correct the highlighted errors",
+                icon: "error"
+            });
+            return;
+        }
         const payload = {
             orderDate: order.orderDate || null,
             price: order.price !== "" ? Number(order.price) : null,
@@ -90,18 +130,6 @@ const OrderForm = () => {
         <div className="container mt-4">
             <h2>{id ? "Edit Order" : "Add Order"}</h2>
             <form onSubmit={handleSubmit}>
-                {/* Order Date */}
-                <div className="mb-3">
-                    <label className="form-label">Order Date</label>
-                    <input
-                        type="date"
-                        className="form-control"
-                        name="orderDate"
-                        value={order.orderDate || ""}
-                        onChange={handleChange}
-                    />
-                </div>
-
                 {/* Price */}
                 <div className="mb-3">
                     <label className="form-label">Price</label>
@@ -113,6 +141,9 @@ const OrderForm = () => {
                         value={order.price}
                         onChange={handleChange}
                     />
+                    {errors.price && (
+                        <div className="invalid-feedback">{errors.price}</div>
+                    )}
                 </div>
 
                 {/* Details */}
@@ -125,6 +156,7 @@ const OrderForm = () => {
                         value={order.details}
                         onChange={handleChange}
                     />
+
                 </div>
 
                 {/* Customer */}

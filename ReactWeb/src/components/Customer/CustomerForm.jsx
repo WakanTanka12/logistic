@@ -56,51 +56,51 @@ const CustomerForm = () => {
             address: "",
         };
 
+        const onlyLettersRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /^[67][0-9]{7}$/;
+
         if (!firstName.trim()) {
             copy.firstName = "First name is required";
             valid = false;
 
+        } else if (!onlyLettersRegex.test(firstName)) {
+            copy.firstName = "First name cannot contain numbers";
+            valid = false;
+        } else if (!firstName.trim().length < 2 || !firstName.trim().length > 50) {
+            copy.lastName = "First name needs to be between 2 and 50 characters";
+            valid = false;
         }
-        else {
-            const onlyLettersRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
-            if (!onlyLettersRegex.test(firstName)) {
-                copy.firstName = "First name cannot contain numbers";
-                valid = false;
-            }
-        }
+
         if (!lastName.trim()) {
             copy.lastName = "Last name is required";
             valid = false;
-        }
-        else {
-            const onlyLettersRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
-            if (!onlyLettersRegex.test(lastName)) {
-                copy.lastName = "Last name cannot contain numbers";
-                valid = false;
-            }
+        } else if (!onlyLettersRegex.test(lastName)) {
+            copy.lastName = "Last name cannot contain numbers";
+            valid = false;
+        } else if (!lastName.trim().length < 2 || !lastName.trim().length > 50) {
+            copy.lastName = "Last name needs to be between 2 and 50 characters";
+            valid = false;
         }
 
         if (!email.trim()) {
             copy.email = "Email is required";
             valid = false;
-        } else {
-            const emailRegex =
-                /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            if (!emailRegex.test(email)) {
-                copy.email = "Email is not correct";
-                valid = false;
-            }
+        } else if (!emailRegex.test(email)) {
+            copy.email = "Email is not correct";
+            valid = false;
         }
+
         if (!phone.trim()) {
             copy.phone = "Phone is required";
             valid = false;
         } else {
-            const phoneRegex = /^[67][0-9]{7}$/;
             if (!phoneRegex.test(phone)) {
                 copy.phone = "Phone is invalid";
                 valid = false;
             }
         }
+
         if (!address.trim()) {
             copy.address = "Address is required";
             valid = false;

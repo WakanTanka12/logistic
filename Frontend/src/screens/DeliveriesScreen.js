@@ -65,7 +65,7 @@ export default function DeliveriesScreen() {
         setShowDatePicker(false);
         if (selectedDate) {
             const dateString = formatDateToYYYYMMDD(selectedDate);
-            setForm((f) => ({ ...f, orderDate: dateString }));
+            setForm((f) => ({ ...f, deliveryDate: dateString }));
         }
     };
 
@@ -198,8 +198,13 @@ export default function DeliveriesScreen() {
             return;
         }
 
-        if(!checkDateRange(form.deliveryDate, 1, "weeks", "max")) {
-            Alert.alert("Error", "El delivery es minimo en una semana desde la orden")
+        if(!checkDateRange(form.deliveryDate, 0, "days", "max")) {
+            Alert.alert("Error", "El delivery no puede ser en el pasado")
+            return;
+        }
+
+        if(!checkDateRange(form.deliveryDate, 1, "weeks", "min")) {
+            Alert.alert("Error", "El delivery es maximo en una semana desde la orden")
             return;
         }
 

@@ -4,12 +4,58 @@ import Swal from "sweetalert2";
 import { createDelivery, updateDelivery, getDeliveryById } from "../../services/DeliveryService";
 import { getAllOrders } from "../../services/OrderService";
 import { getAllDrivers } from "../../services/DriverService";
-import { getAllRoutes } from "../../services/RouteService"; // crea si aún no la tienes
+import { getAllRoutes } from "../../services/RouteService";
+
+const STATUS_OPTIONS = [
+    { label: "Pendiente", value: "PENDING" },
+    { label: "En Ruta", value: "IN_ROUTE" },
+    { label: "Entregado", value: "DELIVERED" },
+];
+
+const checkDateRange = (dateString, value, unit, type) => {
+    // 1. Obtener la fecha seleccionada
+    const selectedDate = new Date(dateString + "T00:00:00"); // Asegura que sea el inicio del día local
+
+    // 2. Obtener la fecha de referencia (Hoy)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 3. Calcular la fecha límite (boundary date)
+    const boundaryDate = new Date(today);
+
+    switch (unit) {
+        case 'days':
+            // Si es 'max', restamos; si es 'min', sumamos
+            boundaryDate.setDate(boundaryDate.getDate() + (type === 'max' ? -value : value));
+            break;
+        case 'weeks':
+            boundaryDate.setDate(boundaryDate.getDate() + (type === 'max' ? -value * 7 : value * 7));
+            break;
+        case 'months':
+            boundaryDate.setMonth(boundaryDate.getMonth() + (type === 'max' ? -value : value));
+            break;
+        case 'years':
+            boundaryDate.setFullYear(boundaryDate.getFullYear() + (type === 'max' ? -value : value));
+            break;
+        default:
+            return true;
+    }
+
+    // 4. Realizar la comparación
+    if (type === 'max') {
+        // Validación MÁXIMO: La fecha seleccionada DEBE ser posterior o igual a la fecha límite
+        return selectedDate >= boundaryDate;
+    } else if (type === 'min') {
+        // Validación MÍNIMO: La fecha seleccionada DEBE ser anterior o igual a la fecha límite
+        return selectedDate <= boundaryDate;
+    }
+
+    return false;
+};
 
 const DeliveryForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-
     const [delivery, setDelivery] = useState({
         deliveryDate: "",
         status: "",
@@ -17,10 +63,16 @@ const DeliveryForm = () => {
         driverId: "",
         routeId: "",
     });
-
     const [orders, setOrders] = useState([]);
     const [drivers, setDrivers] = useState([]);
     const [routes, setRoutes] = useState([]);
+    const [errors, setErrors] = useState({
+        deliveryDate: "",
+        status: "",
+        orderId: "",
+        driverId: "",
+        routeId: "",
+    });
 
     useEffect(() => {
         loadOrders();
@@ -28,6 +80,67 @@ const DeliveryForm = () => {
         loadRoutes();
         if (id) loadDelivery();
     }, [id]);
+
+    function validateForm () {
+        let valid = true;
+        const copy = {
+            deliveryDate: "",
+            status: "",
+            orderId: "",
+            driverId: "",
+            routeId: "",
+        };
+
+        // ------------------ VALIDACIÓN DE FECHA ------------------
+
+        if(!delivery.deliveryDate) {
+            copy.deliveryDate = "Delivery date is required";
+            valid = false;
+        } else {
+            const deliveryDateString = delivery.deliveryDate; // YYYY-MM-DD
+
+            // 1. VALIDACIÓN MÍNIMA (No puede ser en el pasado)
+            // Usamos 'max' 0 días, lo que significa que la fecha seleccionada
+            // debe ser mayor o igual a (hoy - 0 días)
+            if (!checkDateRange(deliveryDateString, 0, 'days', 'max')) {
+                copy.deliveryDate = "The delivery date cannot be in the past. Select today or a future date.";
+                valid = false;
+            }
+
+            // 2. VALIDACIÓN MÁXIMA (Ejemplo: Máximo 1 año en el futuro)
+            // La fecha seleccionada debe ser menor o igual a (hoy + 1 año)
+            if (valid && !checkDateRange(deliveryDateString, 1, 'years', 'min')) {
+                copy.deliveryDate = "The delivery date cannot be more than 1 year in the future.";
+                valid = false;
+            }
+        }
+
+        // ------------------ FIN VALIDACIÓN DE FECHA ------------------
+
+
+        if(!delivery.status) {
+            copy.status = "Status is required";
+            valid = false;
+        }
+
+        if(!delivery.orderId) {
+            copy.orderId = "An Order needs to be assigned"
+            valid = false;
+        }
+
+        if(!delivery.driverId) {
+            copy.driverId = "A Driver needs to be assigned"
+            valid = false;
+        }
+
+        if(!delivery.routeId) {
+            copy.routeId = "A Route needs to be assigned"
+            valid = false;
+        }
+
+        setErrors(copy);
+        return valid;
+    }
 
     const loadOrders = async () => {
         try {
@@ -81,29 +194,14 @@ const DeliveryForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if(!delivery.deliveryDate) {
-            Swal.fire("Error", "Please enter date", "error");
+        if (!validateForm()) {
+            Swal.fire({
+                title: "Error",
+                text: "Please correct the highlighted errors",
+                icon: "error"
+            });
             return;
         }
-        const noNumbersRegex = /^[A-Za-z\s]+$/;
-
-        if (!delivery.status || !noNumbersRegex.test(delivery.status)) {
-            Swal.fire("Error", "Status cannot contain numbers", "error");
-            return;
-        }
-        //Validacion de fecha, no se puede en el pasado
-        // const selectedDate = new Date(delivery.deliveryDate + "T00:00:00");
-        // const today = new Date();
-        // today.setHours(0,0,0,0)
-        //
-        // if(selectedDate < today) {
-        //     Swal.fire({
-        //         title: "Fecha inválida",
-        //         text: "No puedes programar una entrega en el pasado. Por favor selecciona hoy o una fecha futura.",
-        //         icon: "error"
-        //     });
-        //     return;
-        // }
 
         const payload = {
             deliveryDate: delivery.deliveryDate || null,
@@ -134,12 +232,35 @@ const DeliveryForm = () => {
             <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                     <label className="form-label">Delivery Date</label>
-                    <input type="date" className="form-control" name="deliveryDate" value={delivery.deliveryDate || ""} onChange={handleChange} />
+                    <input
+                        type="date"
+                        className={`form-control ${errors.deliveryDate ? "is-invalid" : ""}`}
+                        name="deliveryDate"
+                        value={delivery.deliveryDate || ""}
+                        onChange={handleChange}
+                    />
+                    {errors.deliveryDate && (
+                        <div className="invalid-feedback">{errors.deliveryDate}</div>
+                    )}
                 </div>
 
                 <div className="mb-3">
                     <label className="form-label">Status</label>
-                    <input className="form-control" name="status" value={delivery.status} onChange={handleChange} required />
+                    <select
+                        className={`form-select ${errors.status ? "is-invalid" : ""}`}
+                        name="status"
+                        value={delivery.status || ""}
+                        onChange={handleChange}
+                        required
+                    >
+                        <option value="">-- Select Status --</option>
+                        {/* Mapea sobre la constante STATUS_OPTIONS */}
+                        {STATUS_OPTIONS.map((status) => (
+                            <option key={status.value} value={status.value}>
+                                {status.label}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 {/* Order (1:1) */}

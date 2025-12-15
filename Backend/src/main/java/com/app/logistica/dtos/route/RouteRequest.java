@@ -17,6 +17,4 @@ public class RouteRequest {
     private String routeName;
     private String origin;
     private String destination;
-    private BigDecimal distance;
-    private Duration estimatedDuration;
 }
