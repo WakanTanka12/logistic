@@ -7,7 +7,6 @@ import { getAllCustomers } from "../../services/CustomerService";
 const getLocalDateString = () => {
     const today = new Date();
     const year = today.getFullYear();
-    // getMonth() es base 0, por eso sumamos 1
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
@@ -18,19 +17,20 @@ const OrderForm = () => {
     const navigate = useNavigate();
 
     const [order, setOrder] = useState({
-        orderDate: id? "" : getLocalDateString(),
-        price: "",
-        details: "",
-        customerId: "",
-    });
-    const [errors, setErrors] = useState({
-        orderDate: id? "" : getLocalDateString(),
+        orderDate: id ? "" : getLocalDateString(),
         price: "",
         details: "",
         customerId: "",
     });
 
-    // 👇 aseguramos que sea array vacío
+    // Inicializamos errores vacíos
+    const [errors, setErrors] = useState({
+        orderDate: "",
+        price: "",
+        details: "",
+        customerId: "",
+    });
+
     const [customers, setCustomers] = useState([]);
 
     useEffect(() => {
@@ -38,7 +38,7 @@ const OrderForm = () => {
         if (id) loadOrder();
     }, [id]);
 
-    function validateForm () {
+    function validateForm() {
         let valid = true;
         const copy = {
             orderDate: "",
@@ -47,8 +47,24 @@ const OrderForm = () => {
             customerId: "",
         };
 
-        if(!order.price) {
+        // Validación Fecha
+        if (!order.orderDate) {
+            copy.orderDate = "Order Date is required";
+            valid = false;
+        }
+
+        // Validación Precio
+        if (!order.price) {
             copy.price = "Price is required";
+            valid = false;
+        } else if (Number(order.price) <= 0 || Number(order.price) > 1000) {
+            copy.price = "Price must be greater than 0 and less than 1000";
+            valid = false;
+        }
+
+        // Validación Cliente
+        if (!order.customerId) {
+            copy.customerId = "Customer is required";
             valid = false;
         }
 
@@ -59,13 +75,9 @@ const OrderForm = () => {
     const loadCustomers = async () => {
         try {
             const res = await getAllCustomers();
-            console.log("Customers response:", res.data);
-
-            // ✅ protección contra estructuras inesperadas
             const list = Array.isArray(res.data)
                 ? res.data
                 : res.data?.content || res.data?.data || [];
-
             setCustomers(list);
         } catch (error) {
             console.error("Error loading customers:", error);
@@ -130,13 +142,14 @@ const OrderForm = () => {
         <div className="container mt-4">
             <h2>{id ? "Edit Order" : "Add Order"}</h2>
             <form onSubmit={handleSubmit}>
+
                 {/* Price */}
                 <div className="mb-3">
                     <label className="form-label">Price</label>
                     <input
                         type="number"
                         step="0.01"
-                        className="form-control"
+                        className={`form-control ${errors.price ? "is-invalid" : ""}`}
                         name="price"
                         value={order.price}
                         onChange={handleChange}
@@ -156,22 +169,19 @@ const OrderForm = () => {
                         value={order.details}
                         onChange={handleChange}
                     />
-
                 </div>
 
                 {/* Customer */}
                 <div className="mb-3">
                     <label className="form-label">Customer</label>
                     <select
-                        className="form-select"
+                        className={`form-select ${errors.customerId ? "is-invalid" : ""}`}
                         name="customerId"
                         value={order.customerId || ""}
                         onChange={handleChange}
                         required
                     >
                         <option value="">-- Select Customer --</option>
-
-                        {/* ✅ protección en el render */}
                         {Array.isArray(customers) &&
                             customers.map((c) => (
                                 <option key={c.id} value={c.id}>
@@ -179,6 +189,9 @@ const OrderForm = () => {
                                 </option>
                             ))}
                     </select>
+                    {errors.customerId && (
+                        <div className="invalid-feedback">{errors.customerId}</div>
+                    )}
                 </div>
 
                 <button type="submit" className="btn btn-success me-2">

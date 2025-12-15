@@ -105,11 +105,29 @@ const DriverForm = () => {
             <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                     <label className="form-label">First Name</label>
-                    <input className="form-control" name="firstName" value={driver.firstName} onChange={handleChange} required />
+                    <input
+                        className={`form-control ${errors.firstName ? "is-invalid" : ""}`}
+                        name="firstName"
+                        value={driver.firstName}
+                        onChange={handleChange}
+                        required
+                    />
+                    {errors.firstName && (
+                        <div className="invalid-feedback">{errors.firstName}</div>
+                    )}
                 </div>
                 <div className="mb-3">
                     <label className="form-label">Last Name</label>
-                    <input className="form-control" name="lastName" value={driver.lastName} onChange={handleChange} required />
+                    <input
+                        className={`form-control ${errors.lastName ? "is-invalid" : ""}`}
+                        name="lastName"
+                        value={driver.lastName}
+                        onChange={handleChange}
+                        required
+                    />
+                    {errors.lastName && (
+                        <div className="invalid-feedback">{errors.lastName}</div>
+                    )}
                 </div>
                 <button type="submit" className="btn btn-success me-2">Save</button>
                 <button type="button" className="btn btn-secondary" onClick={() => navigate("/drivers")}>Cancel</button>

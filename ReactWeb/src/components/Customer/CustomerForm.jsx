@@ -67,8 +67,8 @@ const CustomerForm = () => {
         } else if (!onlyLettersRegex.test(firstName)) {
             copy.firstName = "First name cannot contain numbers";
             valid = false;
-        } else if (!firstName.trim().length < 2 || !firstName.trim().length > 50) {
-            copy.lastName = "First name needs to be between 2 and 50 characters";
+        } else if (firstName.trim().length < 2 || firstName.trim().length > 50) {
+            copy.firstName = "First name needs to be between 2 and 50 characters";
             valid = false;
         }
 
@@ -78,7 +78,7 @@ const CustomerForm = () => {
         } else if (!onlyLettersRegex.test(lastName)) {
             copy.lastName = "Last name cannot contain numbers";
             valid = false;
-        } else if (!lastName.trim().length < 2 || !lastName.trim().length > 50) {
+        } else if (lastName.trim().length < 2 || lastName.trim().length > 50) {
             copy.lastName = "Last name needs to be between 2 and 50 characters";
             valid = false;
         }

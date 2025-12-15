@@ -322,6 +322,9 @@ const DeliveryForm = () => {
                             </option>
                         ))}
                     </select>
+                    {errors.driverId && (
+                        <div className="invalid-feedback">{errors.driverId}</div>
+                    )}
                 </div>
 
                 {/* Route (N:1) */}
@@ -335,6 +338,9 @@ const DeliveryForm = () => {
                             </option>
                         ))}
                     </select>
+                    {errors.routeId && (
+                        <div className="invalid-feedback">{errors.routeId}</div>
+                    )}
                 </div>
 
                 <button type="submit" className="btn btn-success me-2">Save</button>
