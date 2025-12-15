@@ -211,15 +211,15 @@ export default function DeliveriesScreen() {
             return;
         }
 
-        if(!checkDateRange(form.deliveryDate, 0, "days", "max")) {
-            Alert.alert("Error", "El delivery no puede ser en el pasado")
-            return;
-        }
-
-        if(!checkDateRange(form.deliveryDate, 1, "weeks", "min")) {
-            Alert.alert("Error", "El delivery es maximo en una semana desde la orden")
-            return;
-        }
+        // if(!checkDateRange(form.deliveryDate, 0, "days", "max")) {
+        //     Alert.alert("Error", "El delivery no puede ser en el pasado")
+        //     return;
+        // }
+        //
+        // if(!checkDateRange(form.deliveryDate, 1, "weeks", "min")) {
+        //     Alert.alert("Error", "El delivery es maximo en una semana desde la orden")
+        //     return;
+        // }
 
 
         const payload = {

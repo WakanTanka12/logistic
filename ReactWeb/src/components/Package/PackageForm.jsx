@@ -162,7 +162,7 @@ const PackageForm = () => {
                 }
                 await createPackageForOrder(actualOrderId, payload);
                 Swal.fire("Created", "Package created successfully", "success");
-                navigate(`/orders/${actualOrderId}/packages`);
+                navigate(orderId ? `/orders/${actualOrderId}/packages` : "/packages");
             }
         } catch (e) {
             console.error("Error saving package", e);
