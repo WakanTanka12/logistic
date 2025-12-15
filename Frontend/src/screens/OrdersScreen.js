@@ -35,23 +35,6 @@ export default function OrdersScreen() {
         customerId: "", // lo guardamos como string para el Picker
     });
 
-    // 🔹 Cargar todas las órdenes
-    const formatDateToYYYYMMDD = (date) => {
-        if (!date) return "";
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-    };
-
-    const onChangeDate = (event, selectedDate) => {
-        setShowDatePicker(false);
-        if (selectedDate) {
-            const dateString = formatDateToYYYYMMDD(selectedDate);
-            setForm((f) => ({ ...f, orderDate: dateString }));
-        }
-    };
-
     const loadOrders = async () => {
         try {
             setLoading(true);
@@ -83,49 +66,6 @@ export default function OrdersScreen() {
         loadOrders();
         loadCustomers();
     }, []);
-
-
-    const checkDateRange = (dateString, value, unit, type) => {
-        // 1. Obtener la fecha seleccionada
-        const selectedDate = new Date(dateString);
-        selectedDate.setHours(0, 0, 0, 0); // Limpiar la hora para comparar solo fechas
-
-        // 2. Obtener la fecha de referencia (Hoy)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        // 3. Calcular la fecha límite (boundary date)
-        const boundaryDate = new Date(today);
-
-        switch (unit) {
-            case 'days':
-                // Si es 'max', restamos; si es 'min', sumamos (la lógica está invertida para la comparación)
-                boundaryDate.setDate(boundaryDate.getDate() + (type === 'max' ? -value : value));
-                break;
-            case 'weeks':
-                boundaryDate.setDate(boundaryDate.getDate() + (type === 'max' ? -value * 7 : value * 7));
-                break;
-            case 'months':
-                boundaryDate.setMonth(boundaryDate.getMonth() + (type === 'max' ? -value : value));
-                break;
-            case 'years':
-                boundaryDate.setFullYear(boundaryDate.getFullYear() + (type === 'max' ? -value : value));
-                break;
-            default:
-                return true;
-        }
-
-        // 4. Realizar la comparación
-        if (type === 'max') {
-            // Validación MÁXIMO: La fecha seleccionada DEBE ser posterior o igual a la fecha límite
-            return selectedDate >= boundaryDate;
-        } else if (type === 'min') {
-            // Validación MÍNIMO: La fecha seleccionada DEBE ser anterior o igual a la fecha límite
-            return selectedDate <= boundaryDate;
-        }
-
-        return false;
-    };
 
     const checkPriceRange = (price, min, max) => {
         return price >= min && price <= max;
@@ -162,29 +102,19 @@ export default function OrdersScreen() {
             },
         ]);
     };
-    const normalizeDate = (str) => {
-        if (!str) return "";
-        // reemplaza / por -
-        return str.replace(/\//g, "-");
-    };
 
     // 🔹 Guardar nueva o actualizar orden
     const handleSubmit = async () => {
 
         const priceRegex = /^[0-9]+(\.[0-9]+)?$/;
 
-        if(!form.orderDate || !form.price) {
-            Alert.alert("Error", "Por favor ponga la fecha o el precio");
+        if(!form.price) {
+            Alert.alert("Error", "Por favor ponga el precio");
             return;
         }
 
         if (!form.customerId) {
             Alert.alert("Error", "Selecciona un cliente");
-            return;
-        }
-
-        if(!checkDateRange(form.orderDate, 3, 'years', 'min')) {
-            Alert.alert("Error", "La orden debe ser máximo dentro de 3 años");
             return;
         }
 
@@ -200,15 +130,13 @@ export default function OrdersScreen() {
             return;
         }
 
-        if (!form.orderDate || form.orderDate.trim() === "") {
-            Alert.alert("Error", "La fecha es obligatoria");
-            return;
-        }
-
+        const finalOrderDate = form.id
+            ? form.orderDate
+            : new Date().toISOString().slice(0, 10);
 
         const payload = {
             // si no ponen fecha, usamos hoy. Si ponen con /, la normalizamos.
-            orderDate: normalizeDate(form.orderDate) || new Date().toISOString().slice(0, 10),
+            orderDate: finalOrderDate,
             price: priceNumber,
             details: form.details || "",
             customerId: Number(form.customerId),
@@ -301,26 +229,26 @@ export default function OrdersScreen() {
                     {form.id ? "Editar orden" : "Nueva orden"}
                 </Text>
 
-                <Text style={{ marginBottom: 4, fontWeight: "600" }}>Fecha de la orden</Text>
-                <TouchableOpacity
-                    style={styles.input} // Reutiliza el estilo del input para la apariencia
-                    onPress={() => setShowDatePicker(true)} // Abre el selector
-                >
-                    <Text style={form.orderDate ? { color: "#000" } : { color: "#999" }}>
-                        {form.orderDate || "Selecciona la fecha (YYYY-MM-DD)"}
-                    </Text>
-                </TouchableOpacity>
+                {/*<Text style={{ marginBottom: 4, fontWeight: "600" }}>Fecha de la orden</Text>*/}
+                {/*<TouchableOpacity*/}
+                {/*    style={styles.input} // Reutiliza el estilo del input para la apariencia*/}
+                {/*    onPress={() => setShowDatePicker(true)} // Abre el selector*/}
+                {/*>*/}
+                {/*    <Text style={form.orderDate ? { color: "#000" } : { color: "#999" }}>*/}
+                {/*        {form.orderDate || "Selecciona la fecha (YYYY-MM-DD)"}*/}
+                {/*    </Text>*/}
+                {/*</TouchableOpacity>*/}
 
-                {/* 2. SELECTOR DE FECHA (Aparece condicionalmente) */}
-                {showDatePicker && (
-                    <DateTimePicker
-                        // Aquí usamos la fecha del formulario, o la de hoy si no hay
-                        value={form.orderDate ? new Date(form.orderDate) : new Date()}
-                        mode="date"
-                        display="default"
-                        onChange={onChangeDate} // La función que guarda la fecha seleccionada
-                    />
-                )}
+                {/*/!* 2. SELECTOR DE FECHA (Aparece condicionalmente) *!/*/}
+                {/*{showDatePicker && (*/}
+                {/*    <DateTimePicker*/}
+                {/*        // Aquí usamos la fecha del formulario, o la de hoy si no hay*/}
+                {/*        value={form.orderDate ? new Date(form.orderDate) : new Date()}*/}
+                {/*        mode="date"*/}
+                {/*        display="default"*/}
+                {/*        onChange={onChangeDate} // La función que guarda la fecha seleccionada*/}
+                {/*    />*/}
+                {/*)}*/}
 
                 <TextInput
                     style={styles.input}

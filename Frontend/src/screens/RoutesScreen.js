@@ -1,5 +1,5 @@
 // src/screens/RoutesScreen.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
     View,
     Text,
@@ -36,7 +36,7 @@ export default function RoutesScreen() {
     });
 
     // ================= CARGAS =================
-    const loadRoutes = async () => {
+    const loadRoutes = useCallback(async () => {
         try {
             setLoading(true);
             const res = await getAllRoutes();
@@ -47,9 +47,24 @@ export default function RoutesScreen() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [setRoutes, setLoading]); // Depende de sus setters
 
-    const loadAllDeliveries = async () => {
+    const loadDriver = useCallback(async (driverId) => {
+        // [Cuidado] Esta función accede al estado 'drivers', debe incluirse como dependencia.
+        if (drivers[driverId]) return; // ya lo tenemos
+
+        try {
+            const res = await getDriverById(driverId);
+            setDrivers((prev) => ({
+                ...prev,
+                [driverId]: res.data ?? res,
+            }));
+        } catch (err) {
+            console.error("Error cargando driver:", err);
+        }
+    }, [drivers, setDrivers]); // Depende de drivers y su setter
+
+    const loadAllDeliveries = useCallback(async () => {
         try {
             const res = await getAllDeliveries();
             const list = res.data ?? res;
@@ -62,21 +77,7 @@ export default function RoutesScreen() {
         } catch (err) {
             console.error("Error cargando entregas:", err);
         }
-    };
-
-    const loadDriver = async (driverId) => {
-        if (drivers[driverId]) return; // ya lo tenemos
-
-        try {
-            const res = await getDriverById(driverId);
-            setDrivers((prev) => ({
-                ...prev,
-                [driverId]: res.data ?? res,
-            }));
-        } catch (err) {
-            console.error("Error cargando driver:", err);
-        }
-    };
+    }, [setDeliveries, loadDriver]);
 
     useEffect(() => {
         loadRoutes();
@@ -114,24 +115,25 @@ export default function RoutesScreen() {
     };
 
     const handleSubmit = async () => {
-        if (!form.name) {
-            Alert.alert("Error", "El nombre es obligatorio");
+        // No permitir números en nombre, origen y destino
+        const onlyLettersRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
+
+        if (!form.name || !form.origin || !form.destination) {
+            Alert.alert("Error", "El nombre, origen y destino es obligatorio");
             return;
         }
-// No permitir números en nombre, origen y destino
-        const onlyLettersRegex = /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/;
 
         if (!onlyLettersRegex.test(form.name)) {
             Alert.alert("Error", "El nombre no debe contener números");
             return;
         }
 
-        if (form.origin && !onlyLettersRegex.test(form.origin)) {
+        if (!onlyLettersRegex.test(form.origin)) {
             Alert.alert("Error", "El origen no debe contener números");
             return;
         }
 
-        if (form.destination && !onlyLettersRegex.test(form.destination)) {
+        if (!onlyLettersRegex.test(form.destination)) {
             Alert.alert("Error", "El destino no debe contener números");
             return;
         }

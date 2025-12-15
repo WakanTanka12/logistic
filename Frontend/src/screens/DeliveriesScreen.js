@@ -11,7 +11,7 @@ import {
     Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-
+import DateTimePicker from "@react-native-community/datetimepicker";
 import {
     getAllDeliveries,
     createDelivery,
@@ -23,6 +23,12 @@ import { getAllDrivers } from "../api/driversApi";
 import { getAllOrders } from "../api/ordersApi";
 import { getAllRoutes } from "../api/routesApi";
 
+const STATUS_OPTIONS = [
+    { label: "Pendiente", value: "PENDING" },
+    { label: "En Ruta", value: "IN_ROUTE" },
+    { label: "Entregado", value: "DELIVERED" },
+];
+
 export default function DeliveriesScreen() {
     const [deliveries, setDeliveries] = useState([]);
     const [drivers, setDrivers] = useState([]);
@@ -30,10 +36,11 @@ export default function DeliveriesScreen() {
     const [routes, setRoutes] = useState([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
 
     const [form, setForm] = useState({
         id: null,
-        status: "",
+        status: "PENDING",
         deliveryDate: "",
         driverId: null,
         orderId: null,
@@ -46,6 +53,63 @@ export default function DeliveriesScreen() {
         return str.replace(/\//g, "-");
     };
 
+    const formatDateToYYYYMMDD = (date) => {
+        if (!date) return "";
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    };
+
+    const onChangeDate = (event, selectedDate) => {
+        setShowDatePicker(false);
+        if (selectedDate) {
+            const dateString = formatDateToYYYYMMDD(selectedDate);
+            setForm((f) => ({ ...f, orderDate: dateString }));
+        }
+    };
+
+    const checkDateRange = (dateString, value, unit, type) => {
+        // 1. Obtener la fecha seleccionada
+        const selectedDate = new Date(dateString);
+        selectedDate.setHours(0, 0, 0, 0); // Limpiar la hora para comparar solo fechas
+
+        // 2. Obtener la fecha de referencia (Hoy)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 3. Calcular la fecha límite (boundary date)
+        const boundaryDate = new Date(today);
+
+        switch (unit) {
+            case 'days':
+                // Si es 'max', restamos; si es 'min', sumamos (la lógica está invertida para la comparación)
+                boundaryDate.setDate(boundaryDate.getDate() + (type === 'max' ? -value : value));
+                break;
+            case 'weeks':
+                boundaryDate.setDate(boundaryDate.getDate() + (type === 'max' ? -value * 7 : value * 7));
+                break;
+            case 'months':
+                boundaryDate.setMonth(boundaryDate.getMonth() + (type === 'max' ? -value : value));
+                break;
+            case 'years':
+                boundaryDate.setFullYear(boundaryDate.getFullYear() + (type === 'max' ? -value : value));
+                break;
+            default:
+                return true;
+        }
+
+        // 4. Realizar la comparación
+        if (type === 'max') {
+            // Validación MÁXIMO: La fecha seleccionada DEBE ser posterior o igual a la fecha límite
+            return selectedDate >= boundaryDate;
+        } else if (type === 'min') {
+            // Validación MÍNIMO: La fecha seleccionada DEBE ser anterior o igual a la fecha límite
+            return selectedDate <= boundaryDate;
+        }
+
+        return false;
+    };
     // ======== LOADERS ========
     const loadDeliveries = async () => {
         try {
@@ -134,6 +198,10 @@ export default function DeliveriesScreen() {
             return;
         }
 
+        if(!checkDateRange(form.deliveryDate, 1, "weeks", "max")) {
+            Alert.alert("Error", "El delivery es minimo en una semana desde la orden")
+            return;
+        }
 
 
         const payload = {
@@ -157,7 +225,7 @@ export default function DeliveriesScreen() {
             setForm({
                 id: null,
                 status: "",
-                deliveryDate: "",
+                deliveryDate: "PENDING",
                 driverId: null,
                 orderId: null,
                 routeId: null,
@@ -254,21 +322,46 @@ export default function DeliveriesScreen() {
                     {form.id ? "Editar entrega" : "Nueva entrega"}
                 </Text>
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Estado (PENDING / IN_ROUTE / DELIVERED)"
-                    value={form.status}
-                    onChangeText={(text) => setForm((f) => ({ ...f, status: text }))}
-                />
+                <Text style={{ marginBottom: 4, fontWeight: "600" }}>
+                    Estado
+                </Text>
+                <View style={styles.pickerWrapper}>
+                    <Picker
+                        selectedValue={form.status}
+                        onValueChange={(value) =>
+                            setForm((f) => ({ ...f, status: value }))
+                        }
+                    >
+                        {STATUS_OPTIONS.map((opt) => (
+                            <Picker.Item
+                                key={opt.value}
+                                label={opt.label}
+                                value={opt.value}
+                            />
+                        ))}
+                    </Picker>
+                </View>
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Fecha entrega (ej: 2025-11-23)"
-                    value={form.deliveryDate}
-                    onChangeText={(text) =>
-                        setForm((f) => ({ ...f, deliveryDate: text }))
-                    }
-                />
+                <Text style={{ marginBottom: 4, fontWeight: "600" }}>Fecha de la orden</Text>
+                <TouchableOpacity
+                    style={styles.input} // Reutiliza el estilo del input para la apariencia
+                    onPress={() => setShowDatePicker(true)} // Abre el selector
+                >
+                    <Text style={form.orderDate ? { color: "#000" } : { color: "#999" }}>
+                        {form.orderDate || "Selecciona la fecha (YYYY-MM-DD)"}
+                    </Text>
+                </TouchableOpacity>
+
+                {/* 2. SELECTOR DE FECHA (Aparece condicionalmente) */}
+                {showDatePicker && (
+                    <DateTimePicker
+                        // Aquí usamos la fecha del formulario, o la de hoy si no hay
+                        value={form.orderDate ? new Date(form.orderDate) : new Date()}
+                        mode="date"
+                        display="default"
+                        onChange={onChangeDate} // La función que guarda la fecha seleccionada
+                    />
+                )}
 
                 {/* Picker Driver */}
                 <Text style={styles.label}>Conductor</Text>
