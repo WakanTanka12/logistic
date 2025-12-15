@@ -37,8 +37,6 @@ public class RouteServiceImpl implements RouteService {
         route.setRouteName(dto.getRouteName());
         route.setOrigin(dto.getOrigin());
         route.setDestination(dto.getDestination());
-        route.setDistance(dto.getDistance());
-        route.setEstimatedDuration(dto.getEstimatedDuration());
 
         Route updated = routeRepository.save(route);
         return RouteMapper.toResponse(updated);

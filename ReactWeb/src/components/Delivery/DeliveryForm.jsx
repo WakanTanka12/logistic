@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import { createDelivery, updateDelivery, getDeliveryById } from "../../services/DeliveryService";
+import { createDelivery, updateDelivery, getDeliveryById, getAllDeliveries } from "../../services/DeliveryService";
 import { getAllOrders } from "../../services/OrderService";
 import { getAllDrivers } from "../../services/DriverService";
 import { getAllRoutes } from "../../services/RouteService";
+
 
 const STATUS_OPTIONS = [
     { label: "Pendiente", value: "PENDING" },
@@ -66,6 +67,7 @@ const DeliveryForm = () => {
     const [orders, setOrders] = useState([]);
     const [drivers, setDrivers] = useState([]);
     const [routes, setRoutes] = useState([]);
+    const [allDeliveries, setAllDeliveries] = useState([]);
     const [errors, setErrors] = useState({
         deliveryDate: "",
         status: "",
@@ -78,6 +80,7 @@ const DeliveryForm = () => {
         loadOrders();
         loadDrivers();
         loadRoutes();
+        loadAllDeliveries();
         if (id) loadDelivery();
     }, [id]);
 
@@ -126,6 +129,16 @@ const DeliveryForm = () => {
         if(!delivery.orderId) {
             copy.orderId = "An Order needs to be assigned"
             valid = false;
+        } else {
+            const currentOrderId = Number(delivery.orderId);
+            const isDuplicate = allDeliveries.some(d =>
+                Number(d.orderId) === currentOrderId && String(d.id) !== id // Comprueba duplicado, ignorando si es el delivery que estamos editando
+            );
+
+            if(isDuplicate) {
+                copy.orderId = "This Order is already assigned to another Delivery.";
+                valid = false;
+            }
         }
 
         if(!delivery.driverId) {
@@ -137,6 +150,7 @@ const DeliveryForm = () => {
             copy.routeId = "A Route needs to be assigned"
             valid = false;
         }
+
 
         setErrors(copy);
         return valid;
@@ -167,6 +181,16 @@ const DeliveryForm = () => {
         } catch (e) {
             console.error(e);
             Swal.fire("Error", "Failed to load routes", "error");
+        }
+    };
+
+    const loadAllDeliveries = async () => {
+        try {
+            const res = await getAllDeliveries();
+            setAllDeliveries(res.data);
+        } catch (e) {
+            console.error(e);
+            // No alertamos, ya que es una carga auxiliar para validación
         }
     };
 
@@ -261,12 +285,20 @@ const DeliveryForm = () => {
                             </option>
                         ))}
                     </select>
+                    {errors.status && (
+                        <div className="invalid-feedback">{errors.status}</div>
+                    )}
                 </div>
 
                 {/* Order (1:1) */}
                 <div className="mb-3">
                     <label className="form-label">Order</label>
-                    <select className="form-select" name="orderId" value={delivery.orderId || ""} onChange={handleChange} required>
+                    <select
+                        className={`form-select ${errors.orderId ? "is-invalid" : ""}`}
+                        name="orderId"
+                        value={delivery.orderId || ""}
+                        onChange={handleChange} required
+                    >
                         <option value="">-- Select Order --</option>
                         {orders.map((o) => (
                             <option key={o.id} value={o.id}>
@@ -274,6 +306,9 @@ const DeliveryForm = () => {
                             </option>
                         ))}
                     </select>
+                    {errors.orderId && (
+                        <div className="invalid-feedback">{errors.orderId}</div>
+                    )}
                 </div>
 
                 {/* Driver (N:1) */}

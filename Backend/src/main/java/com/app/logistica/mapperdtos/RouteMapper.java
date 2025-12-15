@@ -20,8 +20,6 @@ public interface RouteMapper {
         dto.setRouteName(entity.getRouteName());
         dto.setOrigin(entity.getOrigin());
         dto.setDestination(entity.getDestination());
-        dto.setDistance(entity.getDistance());
-        dto.setEstimatedDuration(entity.getEstimatedDuration());
 
         // Lista de IDs de deliveries (Long)
         if (entity.getDeliveries() != null) {
@@ -48,9 +46,6 @@ public interface RouteMapper {
         route.setRouteName(dto.getRouteName());
         route.setOrigin(dto.getOrigin());
         route.setDestination(dto.getDestination());
-        route.setDistance(dto.getDistance());
-        route.setEstimatedDuration(dto.getEstimatedDuration());
-
         // Los deliveries NO se asignan aquí
         // porque se asignan en el DeliveryService cuando se asocia
 

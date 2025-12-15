@@ -58,8 +58,6 @@ const RouteList = () => {
                     <th>Name</th>
                     <th>Origin</th>
                     <th>Destination</th>
-                    <th>Distance (km)</th>
-                    <th>Estimated (ISO)</th>
                     <th style={{ width: 160 }}>Actions</th>
                 </tr>
                 </thead>
@@ -70,8 +68,6 @@ const RouteList = () => {
                         <td>{r.routeName}</td>
                         <td>{r.origin}</td>
                         <td>{r.destination}</td>
-                        <td>{r.distance}</td>
-                        <td>{r.estimatedDuration || "-"}</td>
                         <td>
                             <Link to={`/routes/edit/${r.id}`} className="btn btn-warning btn-sm me-2">Edit</Link>
                             <button className="btn btn-danger btn-sm" onClick={() => handleDelete(r.id)}>Delete</button>

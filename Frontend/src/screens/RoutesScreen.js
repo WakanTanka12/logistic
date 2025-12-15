@@ -139,7 +139,7 @@ export default function RoutesScreen() {
         }
 
         const payload = {
-            name: form.name,
+            routeName: form.name,
             origin: form.origin,
             destination: form.destination,
         };

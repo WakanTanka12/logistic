@@ -22,7 +22,6 @@ import { Picker } from "@react-native-picker/picker";
 export default function DriversScreen() {
     const [drivers, setDrivers] = useState([]);
     const [deliveries, setDeliveries] = useState({}); // { [driverId]: DeliveryResponse[] }
-    const [selectedDeliveryByDriver, setSelectedDeliveryByDriver] = useState({});
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
 
@@ -152,11 +151,6 @@ export default function DriversScreen() {
 
     const renderItem = ({ item }) => {
         const driverDeliveries = deliveries[item.id] || [];
-        const selectedDeliveryId = selectedDeliveryByDriver[item.id] ?? null;
-
-        const selectedDelivery =
-            driverDeliveries.find((d) => d.id === selectedDeliveryId) || null;
-
         return (
             <View style={styles.card}>
                 <Text style={styles.title}>
@@ -165,7 +159,7 @@ export default function DriversScreen() {
 
                 {/* Relación con las entregas */}
                 <View style={styles.deliveriesContainer}>
-                    <Text style={styles.deliveriesTitle}>Entregas realizadas:</Text>
+                    <Text style={styles.deliveriesTitle}>Entregas asignadas:</Text>
 
                     {driverDeliveries.length === 0 ? (
                         <Text style={styles.text}>
@@ -173,36 +167,11 @@ export default function DriversScreen() {
                         </Text>
                     ) : (
                         <>
-                            {/* 🔽 Picker de entregas de este driver */}
-                            <Picker
-                                selectedValue={selectedDeliveryId}
-                                onValueChange={(value) =>
-                                    setSelectedDeliveryByDriver((prev) => ({
-                                        ...prev,
-                                        [item.id]: value,
-                                    }))
-                                }
-                            >
-                                <Picker.Item
-                                    label="Selecciona una entrega..."
-                                    value={null}
-                                />
-                                {driverDeliveries.map((delivery) => (
-                                    <Picker.Item
-                                        key={delivery.id}
-                                        label={`Entrega #${delivery.id} - ${delivery.status}`}
-                                        value={delivery.id}
-                                    />
-                                ))}
-                            </Picker>
-
-                            {/* Info opcional de la entrega seleccionada */}
-                            {selectedDelivery && (
-                                <Text style={styles.text}>
-                                    Entrega seleccionada: #{selectedDelivery.id} —{" "}
-                                    {selectedDelivery.status}
+                            {driverDeliveries.map((delivery) => (
+                                <Text key={delivery.id} style={styles.text}>
+                                    • Entrega #{delivery.id} | Estado: {delivery.status} | Fecha: {delivery.deliveryDate || 'N/A'}
                                 </Text>
-                            )}
+                            ))}
                         </>
                     )}
                 </View>

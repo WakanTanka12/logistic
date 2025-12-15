@@ -198,6 +198,19 @@ export default function DeliveriesScreen() {
             return;
         }
 
+        const usedOrderIds = deliveries
+            .filter(d => d.id !== form.id)
+            .map(d => Number(d.orderId));
+
+        // 2. Comprobar si la OrderId del formulario ya está en uso por otro delivery
+        if (usedOrderIds.includes(Number(form.orderId))) {
+            Alert.alert(
+                "Error",
+                "La orden seleccionada ya está asignada a otra entrega. Cada orden solo puede tener una entrega."
+            );
+            return;
+        }
+
         if(!checkDateRange(form.deliveryDate, 0, "days", "max")) {
             Alert.alert("Error", "El delivery no puede ser en el pasado")
             return;
